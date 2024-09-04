@@ -11,19 +11,14 @@ const firebaseConfig = {
   appId: "1:907180730840:web:1abf4d1d76f2af3a4f6aad"
 };
 
-let app: FirebaseApp;
-let db: Firestore;
-let auth: Auth;
+let app: FirebaseApp | undefined;
+let db: Firestore | undefined;
+let auth: Auth | undefined;
 
 if (typeof window !== 'undefined' && !getApps().length) {
   app = initializeApp(firebaseConfig);
   db = getFirestore(app);
   auth = getAuth(app);
-} else {
-  // If the app is already initialized, use the existing instances
-  app = getApps()[0];
-  db = getFirestore(app);
-  auth = getAuth(app);
 }
 
-export { db, auth };
+export { app, db, auth };
