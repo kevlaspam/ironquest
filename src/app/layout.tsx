@@ -1,6 +1,7 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
 import { AuthProviderWrapper } from '../components/AuthProviderWrapper'
+import { Footer } from '../components/Footer'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -16,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-gray-900 min-h-screen`}>
+      <body className={`${inter.className} bg-gray-900 min-h-screen flex flex-col`}>
         <AuthProviderWrapper>
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -inset-[10px] opacity-30">
@@ -28,9 +29,10 @@ export default function RootLayout({
                    style={{"--left": "30%", "--top": "70%", "--size": "200px"} as React.CSSProperties}></div>
             </div>
           </div>
-          <div className="relative z-10">
+          <div className="relative z-10 flex-grow">
             {children}
           </div>
+          <Footer />
         </AuthProviderWrapper>
       </body>
     </html>

@@ -54,6 +54,7 @@ export default function Feed() {
   const [error, setError] = useState<string | null>(null)
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [selectedWorkout, setSelectedWorkout] = useState<string | null>(null)
+  const [previewWorkout, setPreviewWorkout] = useState<Workout | null>(null)
 
   useEffect(() => {
     if (!db || !user) return
@@ -94,6 +95,15 @@ export default function Feed() {
     }
   }, [user])
 
+  useEffect(() => {
+    if (selectedWorkout) {
+      const workout = workouts.find(w => w.id === selectedWorkout)
+      setPreviewWorkout(workout || null)
+    } else {
+      setPreviewWorkout(null)
+    }
+  }, [selectedWorkout, workouts])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user || !newPost.trim()) return
@@ -118,6 +128,7 @@ export default function Feed() {
 
       setNewPost('')
       setSelectedWorkout(null)
+      setPreviewWorkout(null)
     } catch (err) {
       console.error('Error adding post:', err)
       setError('Failed to add post. Please try again.')
@@ -185,13 +196,13 @@ export default function Feed() {
       <MainMenu />
       <h1 className="text-4xl font-bold mb-8 text-white text-center">IronQuest Feed</h1>
       
-      <form onSubmit={handleSubmit} className="mb-8">
-        <div className="flex flex-col space-y-2">
+      <form onSubmit={handleSubmit} className="mb-8 bg-gray-800 rounded-xl p-4">
+        <div className="flex flex-col space-y-4">
           <textarea
             value={newPost}
             onChange={(e) => setNewPost(e.target.value)}
             placeholder="What's on your mind?"
-            className="w-full p-2 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none"
+            className="w-full p-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none"
             rows={3}
           />
           <div className="flex items-center justify-between">
@@ -216,6 +227,12 @@ export default function Feed() {
             </button>
           </div>
         </div>
+        {previewWorkout && (
+          <div className="mt-4 p-4 bg-gray-700 rounded-lg">
+            <h4 className="text-white font-semibold mb-2">Workout Preview:</h4>
+            <WorkoutCard workout={previewWorkout} />
+          </div>
+        )}
       </form>
 
       {loading ? (
@@ -225,10 +242,10 @@ export default function Feed() {
       ) : error ? (
         <div className="text-red-500 text-center p-4 bg-gray-800 rounded-xl">{error}</div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {posts.map((post) => (
-            <div key={post.id} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
-              <div className="flex justify-between items-start mb-2">
+            <div key={post.id} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-2 border-yellow-500">
+              <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="text-lg font-semibold text-white">{post.userName}</h3>
                   <p className="text-sm text-gray-400">
