@@ -37,7 +37,7 @@ export default function Home() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800">
-        <div className="text-yellow-500 text-2xl">Loading IronQuest...</div>
+        <div className="text-yellow-500 text-2xl">Loading GymGa.me...</div>
       </div>
     )
   }
@@ -51,7 +51,7 @@ export default function Home() {
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-16">
           <h1 className="text-yellow-500 text-5xl sm:text-6xl md:text-7xl font-extrabold mb-4 flex items-center justify-center">
-            IronQuest <span className="ml-2">💪</span>
+            GymGa.me <span className="ml-2">💪</span>
           </h1>
           <p className="text-gray-400 text-xl md:text-2xl font-semibold">
             Level Up Your Fitness Journey
@@ -63,7 +63,7 @@ export default function Home() {
             <div className="flex flex-col items-center bg-gray-700 rounded-lg p-6 transition-all duration-300 hover:bg-gray-600 border border-yellow-500">
               <Dumbbell size={48} className="mb-4 text-yellow-500" />
               <h2 className="text-xl font-bold mb-2 text-white">Log Workouts</h2>
-              <p className="text-center text-gray-300">Track your exercises and complete fitness quests</p>
+              <p className="text-center text-gray-300">Track your exercises and complete fitness challenges</p>
             </div>
             <div className="flex flex-col items-center bg-gray-700 rounded-lg p-6 transition-all duration-300 hover:bg-gray-600 border border-yellow-500">
               <Award size={48} className="mb-4 text-yellow-500" />
@@ -88,11 +88,11 @@ export default function Home() {
               onClick={signIn}
               className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50"
             >
-              Start Your Fitness Quest
+              Start Your Fitness Game
             </button>
 
             <p className="mt-8 text-gray-400 text-sm md:text-base max-w-2xl mx-auto">
-              Join IronQuest today and transform your workouts into an exciting journey. 
+              Join GymGa.me today and transform your workouts into an exciting journey. 
               Set personal records, overcome challenges, and build your path to peak fitness!
             </p>
           </div>

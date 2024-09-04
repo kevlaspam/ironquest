@@ -2,12 +2,16 @@ import './globals.css'
 import { Inter } from 'next/font/google'
 import { AuthProviderWrapper } from '../components/AuthProviderWrapper'
 import { Footer } from '../components/Footer'
+import { Metadata } from 'next'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata = {
-  title: 'IronQuest',
-  description: 'Gamified workout tracker for bodybuilders and weightlifters',
+export const metadata: Metadata = {
+  title: 'GymGa.me',
+  description: 'Gamified workout tracker for fitness enthusiasts',
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({
@@ -17,6 +21,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+      </head>
       <body className={`${inter.className} bg-gray-900 min-h-screen flex flex-col`}>
         <AuthProviderWrapper>
           <div className="absolute inset-0 overflow-hidden pointer-events-none">

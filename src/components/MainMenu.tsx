@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { useAuth } from './AuthProvider'
 import { useState } from 'react'
-import { Menu, X, Sword, Home, PlusSquare, History, BarChart2, Award, User, LogOut, LogIn } from 'lucide-react'
+import { Menu, X, Dumbbell, Home, PlusSquare, History, BarChart2, Award, User, LogOut, LogIn } from 'lucide-react'
 
 export function MainMenu() {
   const { user, signIn, signOut } = useAuth()
@@ -21,9 +21,11 @@ export function MainMenu() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="flex items-center text-white text-2xl font-extrabold">
-              <Sword className="h-8 w-8 mr-2" />
-              <span className="hidden md:inline">IronQuest</span>
+            <Link href="/" className="flex items-center text-2xl font-extrabold">
+              <div className="h-8 w-8 mr-2 flex items-center justify-center bg-gradient-to-r from-yellow-400 to-yellow-600 rounded">
+                <Dumbbell className="h-6 w-6 text-gray-800" />
+              </div>
+              <span className="hidden md:inline text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">GymGa.me</span>
             </Link>
           </div>
           <div className="hidden md:block">

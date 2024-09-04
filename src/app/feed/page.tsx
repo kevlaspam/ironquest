@@ -194,7 +194,7 @@ export default function Feed() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <MainMenu />
-      <h1 className="text-4xl font-bold mb-8 text-white text-center">IronQuest Feed</h1>
+      <h1 className="text-4xl font-bold mb-8 text-white text-center">Social Feed</h1>
       
       <form onSubmit={handleSubmit} className="mb-8 bg-gray-800 rounded-xl p-4">
         <div className="flex flex-col space-y-4">
