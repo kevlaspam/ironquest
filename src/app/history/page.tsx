@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useAuth } from '../../components/AuthProvider'
 import { collection, query, where, getDocs, orderBy, limit, deleteDoc, doc, updateDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
@@ -38,7 +38,7 @@ export default function Dashboard() {
   const [newWorkoutName, setNewWorkoutName] = useState('')
   const workoutRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
-  const fetchWorkouts = async () => {
+  const fetchWorkouts = useCallback(async () => {
     if (!user || !db) return;
 
     try {
@@ -65,11 +65,11 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
   useEffect(() => {
     fetchWorkouts()
-  }, [user])
+  }, [fetchWorkouts])
 
   const handleDeleteWorkout = async (workoutId: string) => {
     if (!user || !db) return;
@@ -241,7 +241,7 @@ export default function Dashboard() {
                   )}
                 </div>
               </div>
-              <div ref={el => workoutRefs.current[workout.id] = el}>
+              <div ref={(el) => { workoutRefs.current[workout.id] = el; }}>
                 <div className="flex items-center space-x-4 text-sm text-gray-300 mb-4">
                   <div className="flex items-center">
                     <Calendar className="mr-1 h-4 w-4" />
