@@ -15,10 +15,10 @@ let app: FirebaseApp;
 let db: Firestore;
 let auth: Auth;
 
-if (!getApps().length) {
+if (typeof window !== 'undefined' && !getApps().length) {
   app = initializeApp(firebaseConfig);
   db = getFirestore(app);
   auth = getAuth(app);
 }
 
-export { app, db, auth };
+export { db, auth };
