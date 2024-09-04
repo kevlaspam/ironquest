@@ -8,20 +8,20 @@ export function MainMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const menuItems = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/workout/log', label: 'Log Workout' },
-    { href: '/progress', label: 'Progress' },
+    { href: '/history', label: 'History' },
+    { href: '/workout/log', label: 'New Quest' },
+    { href: '/stats', label: 'Stats' },
     { href: '/achievements', label: 'Achievements' },
     { href: '/profile', label: 'Profile' },
   ]
 
   return (
-    <nav className="bg-gray-800 shadow-lg mb-8">
+    <nav className="bg-gray-800 rounded-xl shadow-lg mb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center text-white text-2xl font-extrabold">
-              <Sword className="h-8 w-8 mr-2" />
+              <Sword className="h-6 w-6 mr-2" />
               IronQuest
             </Link>
           </div>
