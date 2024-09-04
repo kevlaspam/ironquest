@@ -22,7 +22,7 @@ const achievementsList: Omit<Achievement, 'unlocked'>[] = [
   { id: 'all_rounder', name: 'Jack of All Trades', description: 'Complete workouts for all major muscle groups', icon: <Target className="w-8 h-8 text-indigo-500" /> },
   { id: 'early_bird', name: 'Early Bird', description: 'Complete a workout before 7 AM', icon: <Sunrise className="w-8 h-8 text-yellow-400" /> },
   { id: 'night_owl', name: 'Night Owl', description: 'Complete a workout after 10 PM', icon: <Moon className="w-8 h-8 text-blue-900" /> },
-  { id: 'caffeine_boost', name: 'Caffeine Boost', description: 'Log a workout within an hour of drinking coffee', icon: <Coffee className="w-8 h-8 text-brown-500" /> },
+  { id: 'caffeine_boost', name: 'Caffeine Boost', description: 'Log a workout within an hour of drinking coffee', icon: <Coffee className="w-8 h-8 text-yellow-700" /> },
   { id: 'pizza_power', name: 'Pizza Power', description: 'Complete a workout on the same day you eat pizza', icon: <Pizza className="w-8 h-8 text-red-600" /> },
   { id: 'weight_loss', name: 'Feather Weight', description: 'Lose 5% of your starting body weight', icon: <Feather className="w-8 h-8 text-teal-500" /> },
   { id: 'muscle_gain', name: 'Muscle Mammoth', description: 'Gain 5 kg of muscle mass', icon: <Scale className="w-8 h-8 text-purple-600" /> },
@@ -95,24 +95,44 @@ export function Achievements() {
   }
 
   if (loading) {
-    return <div className="text-center">Loading achievements...</div>
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-yellow-500"></div>
+      </div>
+    )
   }
 
   if (!user) {
-    return <div className="text-center">Please sign in to view your achievements.</div>
+    return (
+      <div className="text-center text-white p-8 bg-gray-800 rounded-xl shadow-lg">
+        <p className="text-xl font-semibold mb-2">Please sign in to view your achievements.</p>
+      </div>
+    )
   }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {achievements.map((achievement) => (
-        <div key={achievement.id} className={`bg-white rounded-xl shadow-lg p-6 flex items-center space-x-4 ${achievement.unlocked ? 'opacity-100' : 'opacity-50'}`}>
+        <div 
+          key={achievement.id} 
+          className={`bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 flex items-center space-x-4 border-4 ${
+            achievement.unlocked ? 'border-yellow-500' : 'border-gray-700'
+          } transition-all duration-300 ease-in-out transform hover:scale-105`}
+        >
           <div className="flex-shrink-0">
             {achievement.icon}
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-800">{achievement.name}</h3>
-            <p className="text-gray-600">{achievement.description}</p>
-            {achievement.unlocked && <span className="text-green-500 font-semibold">Unlocked!</span>}
+            <h3 className="text-lg font-semibold text-white">{achievement.name}</h3>
+            <p className="text-gray-400">{achievement.description}</p>
+            {achievement.unlocked ? (
+              <span className="text-yellow-500 font-semibold flex items-center mt-2">
+                <Trophy className="w-4 h-4 mr-1" />
+                Unlocked!
+              </span>
+            ) : (
+              <span className="text-gray-500 font-semibold mt-2">Locked</span>
+            )}
           </div>
         </div>
       ))}
