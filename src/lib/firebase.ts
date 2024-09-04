@@ -1,6 +1,6 @@
-import { initializeApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getAuth, Auth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyC9TzbHDjyhLMHUrmblyZLigE_s822RnrI",
@@ -17,6 +17,11 @@ let auth: Auth;
 
 if (typeof window !== 'undefined' && !getApps().length) {
   app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  auth = getAuth(app);
+} else {
+  // If the app is already initialized, use the existing instances
+  app = getApps()[0];
   db = getFirestore(app);
   auth = getAuth(app);
 }
