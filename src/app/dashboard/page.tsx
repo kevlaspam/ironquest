@@ -93,7 +93,7 @@ export default function Dashboard() {
         <div className="text-white text-center">Loading...</div>
       ) : isIndexBuilding ? (
         <div className="text-yellow-300 text-center">
-          <p>We're setting up some things to make your dashboard faster.</p>
+          <p>We&apos;re setting up some things to make your dashboard faster.</p>
           <p>This usually takes a few minutes. Please check back soon!</p>
         </div>
       ) : error ? (
