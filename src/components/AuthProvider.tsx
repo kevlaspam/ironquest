@@ -1,51 +1,56 @@
-'use client'
+import { createContext, useContext, useState, useEffect } from 'react'
+import { User, onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, GoogleAuthProvider } from 'firebase/auth'
+import { auth } from '../lib/firebase'
 
-import { createContext, useContext, useEffect, useState } from 'react'
-import { User, getAuth } from 'firebase/auth'
-import { initializeApp, getApps } from 'firebase/app'
-import { getFirestore } from 'firebase/firestore'
+type AuthContextType = {
+  user: User | null
+  isLoading: boolean
+  signIn: () => Promise<void>
+  signOut: () => Promise<void>
+}
 
-const AuthContext = createContext<{ user: User | null; isLoading: boolean }>({ user: null, isLoading: true })
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isLoading: true,
+  signIn: async () => {},
+  signOut: async () => {},
+})
 
 export const useAuth = () => useContext(AuthContext)
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const firebaseConfig = {
-      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
-    };
-
-    if (!getApps().length) {
-      try {
-        const app = initializeApp(firebaseConfig);
-        getFirestore(app); // Initialize Firestore
-        console.log("Firebase initialized successfully");
-      } catch (error) {
-        console.error("Error initializing Firebase:", error);
-      }
-    }
-
-    const auth = getAuth();
-
-    const unsubscribe = auth.onAuthStateChanged((authUser) => {
-      setUser(authUser)
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user)
       setIsLoading(false)
     })
 
     return () => unsubscribe()
   }, [])
 
+  const signIn = async () => {
+    const provider = new GoogleAuthProvider()
+    try {
+      await signInWithPopup(auth, provider)
+    } catch (error) {
+      console.error('Error signing in with Google', error)
+    }
+  }
+
+  const signOut = async () => {
+    try {
+      await firebaseSignOut(auth)
+    } catch (error) {
+      console.error('Error signing out', error)
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, isLoading }}>
-      {!isLoading && children}
+    <AuthContext.Provider value={{ user, isLoading, signIn, signOut }}>
+      {children}
     </AuthContext.Provider>
   )
 }
