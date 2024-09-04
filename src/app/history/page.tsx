@@ -170,7 +170,7 @@ export default function Dashboard() {
         <div className="text-yellow-300 text-center p-8 bg-gray-800 rounded-xl shadow-lg">
           <Trophy className="w-16 h-16 mx-auto mb-4 animate-pulse" />
           <p className="text-xl font-semibold mb-2">Preparing Your Quest Log</p>
-          <p>We're setting up some things to make your dashboard faster.</p>
+          <p>We&apos;re setting up some things to make your dashboard faster.</p>
           <p>This usually takes a few minutes. Please check back soon!</p>
         </div>
       ) : error ? (
