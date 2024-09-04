@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../../components/AuthProvider'
 import { db } from '../../../lib/firebase'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { MainMenu } from '../../../components/MainMenu'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import { Clipboard, ChevronRight, X, Plus, Save, Sword } from 'lucide-react'
+import { Clipboard, ChevronRight, X, Plus, Save, Sword, Play, Pause, RotateCcw } from 'lucide-react'
 
 type Exercise = {
   name: string
@@ -99,6 +99,10 @@ export default function LogWorkout() {
   const [timer, setTimer] = useState(0)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [workoutStarted, setWorkoutStarted] = useState(false)
+  const [restTimer, setRestTimer] = useState(0)
+  const [isRestTimerRunning, setIsRestTimerRunning] = useState(false)
+  const [activeExerciseIndex, setActiveExerciseIndex] = useState(0)
+  const [activeSetIndex, setActiveSetIndex] = useState(0)
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -112,6 +116,25 @@ export default function LogWorkout() {
     return () => clearInterval(interval)
   }, [isTimerRunning])
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+
+    if (isRestTimerRunning) {
+      interval = setInterval(() => {
+        setRestTimer((prevTimer) => {
+          if (prevTimer > 0) {
+            return prevTimer - 1
+          } else {
+            setIsRestTimerRunning(false)
+            return 0
+          }
+        })
+      }, 1000)
+    }
+
+    return () => clearInterval(interval)
+  }, [isRestTimerRunning])
+
   const startWorkout = (workoutType?: keyof typeof preFilledWorkouts) => {
     setWorkoutStarted(true)
     setIsTimerRunning(true)
@@ -121,10 +144,9 @@ export default function LogWorkout() {
   }
 
   const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
+    const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
   }
 
   const handleExerciseChange = (index: number, value: string) => {
@@ -159,6 +181,11 @@ export default function LogWorkout() {
     const newExercises = [...exercises]
     newExercises.splice(index, 1)
     setExercises(newExercises)
+  }
+
+  const startRestTimer = () => {
+    setRestTimer(60) // Set to 60 seconds, adjust as needed
+    setIsRestTimerRunning(true)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -238,88 +265,127 @@ export default function LogWorkout() {
           ))}
         </div>
       ) : (
-        <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
-          <h2 className="text-xl font-semibold mb-4 text-white">Quest Timer</h2>
-          <p className="text-3xl md:text-4xl font-bold text-yellow-500">{formatTime(timer)}</p>
-        </div>
-      )}
-
-      {workoutStarted && (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {exercises.map((exercise, exerciseIndex) => (
-            <div key={exerciseIndex} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-2 sm:space-y-0">
-                <select
-                  value={exercise.name}
-                  onChange={(e) => handleExerciseChange(exerciseIndex, e.target.value)}
-                  className="bg-gray-700 text-white rounded-lg p-2 w-full sm:w-2/3"
-                  required
-                >
-                  <option value="">Select an exercise</option>
-                  {exerciseOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  onClick={() => removeExercise(exerciseIndex)}
-                  className="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition-colors duration-200 w-full sm:w-auto flex items-center justify-center"
-                >
-                  <X className="w-4 h-4 mr-2" /> Remove
+        <div className="space-y-6">
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-white">Quest Timer</h2>
+              <p className="text-3xl font-bold text-yellow-500">{formatTime(timer)}</p>
+            </div>
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-white">Rest Timer</h3>
+              <div className="flex items-center space-x-2">
+                <p className="text-2xl font-bold text-yellow-500">{formatTime(restTimer)}</p>
+                {isRestTimerRunning ? (
+                  <button onClick={() => setIsRestTimerRunning(false)} className="bg-red-500 text-white p-2 rounded-full">
+                    <Pause size={20} />
+                  </button>
+                ) : (
+                  <button onClick={startRestTimer} className="bg-green-500 text-white p-2 rounded-full">
+                    <Play size={20} />
+                  </button>
+                )}
+                <button onClick={() => setRestTimer(60)} className="bg-blue-500 text-white p-2 rounded-full">
+                  <RotateCcw size={20} />
                 </button>
               </div>
-              {exercise.sets.map((set, setIndex) => (
-                <div key={setIndex} className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 mb-2">
-                  <input
-                    type="number"
-                    value={set.reps}
-                    onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'reps', parseInt(e.target.value))}
-                    placeholder="Reps"
-                    className="bg-gray-700 text-white rounded-lg p-2 w-full sm:w-1/3"
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {exercises.map((exercise, exerciseIndex) => (
+              <div key={exerciseIndex} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
+                <div className="flex justify-between items-center mb-4">
+                  <select
+                    value={exercise.name}
+                    onChange={(e) => handleExerciseChange(exerciseIndex, e.target.value)}
+                    className="bg-gray-700 text-white rounded-lg p-2 w-2/3"
                     required
-                  />
-                  <input
-                    type="number"
-                    value={set.weight}
-                    onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', parseInt(e.target.value))}
-                    placeholder="Weight (kg)"
-                    className="bg-gray-700 text-white rounded-lg p-2 w-full sm:w-1/3"
-                    required
-                  />
+                  >
+                    <option value="">Select an exercise</option>
+                    {exerciseOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
                   <button
                     type="button"
-                    onClick={() => removeSet(exerciseIndex, setIndex)}
-                    className="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition-colors duration-200 w-full sm:w-1/3 flex items-center justify-center"
+                    onClick={() => removeExercise(exerciseIndex)}
+                    className="text-red-500 hover:text-red-600"
                   >
-                    <X className="w-4 h-4 mr-2" /> Remove Set
+                    <X size={20} />
                   </button>
                 </div>
-              ))}
+                <table className="w-full">
+                  <thead>
+                    <tr>
+                      <th className="text-left text-gray-400">Set</th>
+                      <th className="text-left text-gray-400">Reps</th>
+                      <th className="text-left text-gray-400">Weight (kg)</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {exercise.sets.map((set, setIndex) => (
+                      <tr key={setIndex} className="border-b border-gray-700">
+                        <td className="py-2 text-white">{setIndex + 1}</td>
+                        <td className="py-2">
+                          <input
+                            type="number"
+                            value={set.reps}
+                            onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'reps', parseInt(e.target.value))}
+                            className="bg-gray-700 text-white rounded-lg p-2 w-full"
+                            required
+                          />
+                        </td>
+                        <td className="py-2">
+                          <input
+                            type="number"
+                            value={set.weight}
+                            onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', parseInt(e.target.value))}
+                            className="bg-gray-700 text-white rounded-lg p-2 w-full"
+                            required
+                          />
+                        </td>
+                        <td className="py-2">
+                          <button
+                            type="button"
+                            onClick={() => removeSet(exerciseIndex, setIndex)}
+                            className="text-red-500 hover:text-red-600"
+                          >
+                            <X size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <button
+                  type="button"
+                  onClick={() => addSet(exerciseIndex)}
+                  className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-colors duration-200 flex items-center"
+                >
+                  <Plus size={16} className="mr-2" /> Add Set
+                </button>
+              </div>
+            ))}
+            <div className="flex justify-between">
               <button
                 type="button"
-                onClick={() => addSet(exerciseIndex)}
-                className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-colors duration-200 mt-2 w-full sm:w-auto flex items-center justify-center"
+                onClick={addExercise}
+                className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-colors duration-200 flex items-center"
               >
-                <Plus className="w-4 h-4 mr-2" /> Add Set
+                <Plus size={16} className="mr-2" /> Add Exercise
+              </button>
+              <button
+                type="submit"
+                className="bg-yellow-500 text-gray-900 px-6 py-2 rounded-full hover:bg-yellow-400 transition-colors duration-200 flex items-center"
+              >
+                <Sword size={16} className="mr-2" /> Complete Quest
               </button>
             </div>
-          ))}
-          <button
-            type="button"
-            onClick={addExercise}
-            className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-colors duration-200 w-full flex items-center justify-center"
-          >
-            <Plus className="w-4 h-4 mr-2" /> Add Exercise
-          </button>
-          <button
-            type="submit"
-            className="bg-yellow-500 text-gray-900 px-4 py-2 rounded-full hover:bg-yellow-400 transition-colors duration-200 w-full flex items-center justify-center"
-          >
-            <Sword className="w-4 h-4 mr-2" /> Complete Quest
-          </button>
-        </form>
+          </form>
+        </div>
       )}
     </div>
   )
