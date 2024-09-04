@@ -21,7 +21,7 @@ export function MainMenu() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="flex items-center text-2xl font-extrabold">
+            <Link href="/feed" className="flex items-center text-2xl font-extrabold">
               <div className="h-8 w-8 mr-2 flex items-center justify-center bg-gradient-to-r from-yellow-400 to-yellow-600 rounded">
                 <Dumbbell className="h-6 w-6 text-gray-800" />
               </div>
