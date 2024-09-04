@@ -13,7 +13,7 @@ export default function Home() {
 
   useEffect(() => {
     if (user && !isLoading) {
-      router.push('/history')
+      router.push('/feed')
     }
   }, [user, isLoading, router])
 
