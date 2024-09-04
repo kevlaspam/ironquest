@@ -8,9 +8,6 @@ export function Footer() {
         <p className="text-sm">
           💪 Connect, share, and grow stronger together
         </p>
-        <p className="text-xs mt-2">
-          Built by <Link href="https://x.com/kevindgtl" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:underline">@kevindgtl</Link>
-        </p>
       </div>
     </footer>
   )
