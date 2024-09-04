@@ -103,9 +103,9 @@ export default function Progress() {
   }
 
   return (
-    <div className="container mx-auto p-8">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
       <MainMenu />
-      <h1 className="text-4xl font-bold mb-8 text-white animate-float">Your Progress 📈</h1>
+      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float">Your Progress 📈</h1>
       
       {loading ? (
         <div className="text-white text-center mt-10">Loading...</div>
@@ -117,29 +117,29 @@ export default function Progress() {
         <div className="text-white text-center mt-10">No workouts logged yet. Start working out to see your progress!</div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-xl p-6 shadow-xl">
-              <h2 className="text-2xl font-semibold mb-2 text-white">Total Workouts</h2>
-              <p className="text-4xl font-bold text-white">{workouts.length}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h2 className="text-2xl font-semibold mb-2 text-gray-800">Total Workouts</h2>
+              <p className="text-4xl font-bold text-gray-700">{workouts.length}</p>
             </div>
-            <div className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-xl p-6 shadow-xl">
-              <h2 className="text-2xl font-semibold mb-2 text-white">Workout Streak 🔥</h2>
-              <p className="text-4xl font-bold text-white">{calculateWorkoutStreak()} days</p>
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h2 className="text-2xl font-semibold mb-2 text-gray-800">Workout Streak 🔥</h2>
+              <p className="text-4xl font-bold text-gray-700">{calculateWorkoutStreak()} days</p>
             </div>
-            <div className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-xl p-6 shadow-xl">
-              <h2 className="text-2xl font-semibold mb-2 text-white">Total Volume</h2>
-              <p className="text-4xl font-bold text-white">{calculateTotalVolume().toLocaleString()} kg</p>
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h2 className="text-2xl font-semibold mb-2 text-gray-800">Total Volume</h2>
+              <p className="text-4xl font-bold text-gray-700">{calculateTotalVolume().toLocaleString()} kg</p>
             </div>
-            <div className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-xl p-6 shadow-xl">
-              <h2 className="text-2xl font-semibold mb-2 text-white">Avg. Workout Duration</h2>
-              <p className="text-4xl font-bold text-white">
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h2 className="text-2xl font-semibold mb-2 text-gray-800">Avg. Workout Duration</h2>
+              <p className="text-4xl font-bold text-gray-700">
                 {(workouts.reduce((total, workout) => total + workout.duration, 0) / workouts.length / 60).toFixed(1)} min
               </p>
             </div>
           </div>
 
-          <div className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-xl p-6 shadow-xl mb-8">
-            <h2 className="text-2xl font-semibold mb-4 text-white">Workout Duration Over Time</h2>
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h2 className="text-2xl font-semibold mb-4 text-gray-800">Workout Duration Over Time</h2>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={prepareChartData()}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -152,8 +152,8 @@ export default function Progress() {
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-xl p-6 shadow-xl mb-8">
-            <h2 className="text-2xl font-semibold mb-4 text-white">Workout Volume Over Time</h2>
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h2 className="text-2xl font-semibold mb-4 text-gray-800">Workout Volume Over Time</h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={prepareChartData()}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -166,8 +166,8 @@ export default function Progress() {
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-xl p-6 shadow-xl">
-            <h2 className="text-2xl font-semibold mb-4 text-white">Exercises per Workout</h2>
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-gray-800">Exercises per Workout</h2>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={prepareChartData()}>
                 <CartesianGrid strokeDasharray="3 3" />

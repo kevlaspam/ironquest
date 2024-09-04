@@ -86,9 +86,9 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container mx-auto p-8">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
       <MainMenu />
-      <h1 className="text-4xl font-bold mb-8 text-white animate-float">Your IronQuest Dashboard 🏆</h1>
+      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float">Your IronQuest Dashboard 🏆</h1>
       {loading ? (
         <div className="text-white text-center">Loading...</div>
       ) : isIndexBuilding ? (
@@ -101,17 +101,17 @@ export default function Dashboard() {
       ) : (
         <div className="space-y-6">
           {workouts.map((workout) => (
-            <div key={workout.id} className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-xl p-6 shadow-xl">
-              <h2 className="text-2xl font-semibold mb-4 text-white">
+            <div key={workout.id} className="bg-white rounded-xl shadow-lg p-6">
+              <h2 className="text-2xl font-semibold mb-4 text-gray-800">
                 Workout on {new Date(workout.date.seconds * 1000).toLocaleDateString()}
               </h2>
               {workout.duration && (
-                <p className="text-gray-200 mb-4">Duration: {formatDuration(workout.duration)}</p>
+                <p className="text-gray-600 mb-4">Duration: {formatDuration(workout.duration)}</p>
               )}
               {workout.exercises.map((exercise, index) => (
                 <div key={index} className="mb-4">
-                  <h3 className="text-xl font-semibold text-white">{exercise.name}</h3>
-                  <ul className="list-disc list-inside text-gray-200">
+                  <h3 className="text-xl font-semibold text-gray-700">{exercise.name}</h3>
+                  <ul className="list-disc list-inside text-gray-600">
                     {exercise.sets.map((set, setIndex) => (
                       <li key={setIndex}>Set {setIndex + 1}: {set.reps} reps at {set.weight} kg</li>
                     ))}
