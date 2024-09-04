@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../components/AuthProvider'
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore'
+import { collection, query, where, getDocs, orderBy, limit, deleteDoc, doc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import { MainMenu } from '../../components/MainMenu'
+import { Trash2, AlertCircle } from 'lucide-react'
 
 type Set = {
   reps: number;
@@ -29,51 +30,65 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isIndexBuilding, setIsIndexBuilding] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchWorkouts = async () => {
-      if (!user) {
-        console.log("No user found");
-        setLoading(false);
-        return;
-      }
-
-      if (!db) {
-        console.error("Firestore is not initialized");
-        setError("Firestore is not initialized. Please check your Firebase configuration.");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        console.log("Fetching workouts for user:", user.uid);
-        const workoutsQuery = query(
-          collection(db, 'workouts'),
-          where('userId', '==', user.uid),
-          orderBy('date', 'desc'),
-          limit(5)
-        )
-        const workoutsSnapshot = await getDocs(workoutsQuery)
-        console.log("Fetched workouts:", workoutsSnapshot.docs.length);
-        const workoutsData = workoutsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Workout[]
-        setWorkouts(workoutsData)
-      } catch (err) {
-        console.error('Error fetching workouts:', err)
-        if ((err as Error).message.includes("The query requires an index")) {
-          setIsIndexBuilding(true)
-        } else {
-          setError(`Failed to fetch workouts: ${(err as Error).message}`)
-        }
-      } finally {
-        setLoading(false)
-      }
+  const fetchWorkouts = async () => {
+    if (!user) {
+      console.log("No user found");
+      setLoading(false);
+      return;
     }
 
+    if (!db) {
+      console.error("Firestore is not initialized");
+      setError("Firestore is not initialized. Please check your Firebase configuration.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      console.log("Fetching workouts for user:", user.uid);
+      const workoutsQuery = query(
+        collection(db, 'workouts'),
+        where('userId', '==', user.uid),
+        orderBy('date', 'desc'),
+        limit(5)
+      )
+      const workoutsSnapshot = await getDocs(workoutsQuery)
+      console.log("Fetched workouts:", workoutsSnapshot.docs.length);
+      const workoutsData = workoutsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Workout[]
+      setWorkouts(workoutsData)
+    } catch (err) {
+      console.error('Error fetching workouts:', err)
+      if ((err as Error).message.includes("The query requires an index")) {
+        setIsIndexBuilding(true)
+      } else {
+        setError(`Failed to fetch workouts: ${(err as Error).message}`)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
     fetchWorkouts()
   }, [user])
+
+  const handleDeleteWorkout = async (workoutId: string) => {
+    if (!user || !db) return;
+
+    try {
+      await deleteDoc(doc(db, 'workouts', workoutId));
+      setWorkouts(prevWorkouts => prevWorkouts.filter(workout => workout.id !== workoutId));
+      setDeleteConfirmation(null);
+    } catch (err) {
+      console.error('Error deleting workout:', err);
+      setError(`Failed to delete workout: ${(err as Error).message}`);
+    }
+  }
 
   if (!user) {
     return <div className="text-white text-center mt-10">Please sign in to view your dashboard.</div>
@@ -101,23 +116,57 @@ export default function Dashboard() {
       ) : (
         <div className="space-y-6">
           {workouts.map((workout) => (
-            <div key={workout.id} className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-                Workout on {new Date(workout.date.seconds * 1000).toLocaleDateString()}
-              </h2>
-              {workout.duration && (
-                <p className="text-gray-600 mb-4">Duration: {formatDuration(workout.duration)}</p>
-              )}
-              {workout.exercises.map((exercise, index) => (
-                <div key={index} className="mb-4">
-                  <h3 className="text-xl font-semibold text-gray-700">{exercise.name}</h3>
-                  <ul className="list-disc list-inside text-gray-600">
-                    {exercise.sets.map((set, setIndex) => (
-                      <li key={setIndex}>Set {setIndex + 1}: {set.reps} reps at {set.weight} kg</li>
-                    ))}
-                  </ul>
+            <div key={workout.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <div className="p-6 bg-gradient-to-r from-purple-500 to-indigo-600">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-semibold text-white">
+                    Workout on {new Date(workout.date.seconds * 1000).toLocaleDateString()}
+                  </h2>
+                  {deleteConfirmation === workout.id ? (
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleDeleteWorkout(workout.id)}
+                        className="text-red-500 hover:text-red-700 bg-white rounded-full p-1 transition-colors duration-200"
+                        aria-label="Confirm delete workout"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirmation(null)}
+                        className="text-gray-500 hover:text-gray-700 bg-white rounded-full p-1 transition-colors duration-200"
+                        aria-label="Cancel delete workout"
+                      >
+                        <AlertCircle size={20} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setDeleteConfirmation(workout.id)}
+                      className="text-white hover:text-red-200 transition-colors duration-200"
+                      aria-label="Delete workout"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  )}
                 </div>
-              ))}
+                {workout.duration && (
+                  <p className="text-white mt-2">Duration: {formatDuration(workout.duration)}</p>
+                )}
+              </div>
+              <div className="p-6">
+                {workout.exercises.map((exercise, index) => (
+                  <div key={index} className="mb-4 last:mb-0">
+                    <h3 className="text-xl font-semibold text-gray-800">{exercise.name}</h3>
+                    <ul className="mt-2 space-y-1">
+                      {exercise.sets.map((set, setIndex) => (
+                        <li key={setIndex} className="text-gray-600">
+                          Set {setIndex + 1}: {set.reps} reps at {set.weight} kg
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
