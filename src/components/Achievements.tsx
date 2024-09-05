@@ -94,6 +94,9 @@ export function Achievements() {
     }
   }
 
+  const unlockedCount = achievements.filter(a => a.unlocked).length
+  const totalCount = achievementsList.length
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -111,31 +114,37 @@ export function Achievements() {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {achievements.map((achievement) => (
-        <div 
-          key={achievement.id} 
-          className={`bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 flex items-center space-x-4 border-4 ${
-            achievement.unlocked ? 'border-yellow-500' : 'border-gray-700'
-          } transition-all duration-300 ease-in-out transform hover:scale-105`}
-        >
-          <div className="flex-shrink-0">
-            {achievement.icon}
+    <div>
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-white mb-2">Achievements Unlocked</h2>
+        <p className="text-3xl font-bold text-yellow-500">{unlockedCount} / {totalCount}</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {achievements.map((achievement) => (
+          <div 
+            key={achievement.id} 
+            className={`bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 flex items-center space-x-4 border-4 ${
+              achievement.unlocked ? 'border-yellow-500' : 'border-gray-700'
+            } transition-all duration-300 ease-in-out transform hover:scale-105`}
+          >
+            <div className="flex-shrink-0">
+              {achievement.icon}
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white">{achievement.name}</h3>
+              <p className="text-gray-400">{achievement.description}</p>
+              {achievement.unlocked ? (
+                <span className="text-yellow-500 font-semibold flex items-center mt-2">
+                  <Trophy className="w-4 h-4 mr-1" />
+                  Unlocked!
+                </span>
+              ) : (
+                <span className="text-gray-500 font-semibold mt-2">Locked</span>
+              )}
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-white">{achievement.name}</h3>
-            <p className="text-gray-400">{achievement.description}</p>
-            {achievement.unlocked ? (
-              <span className="text-yellow-500 font-semibold flex items-center mt-2">
-                <Trophy className="w-4 h-4 mr-1" />
-                Unlocked!
-              </span>
-            ) : (
-              <span className="text-gray-500 font-semibold mt-2">Locked</span>
-            )}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }
