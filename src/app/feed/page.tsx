@@ -22,7 +22,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import { MainMenu } from '../../components/MainMenu'
-import { Trash2, Send, Heart, MessageCircle } from 'lucide-react'
+import { Trash2, Send, Heart, MessageCircle, Smile } from 'lucide-react'
 import { WorkoutCard } from '../../components/WorkoutCard'
 import { CommentSection } from '../../components/CommentSection'
 
@@ -44,12 +44,26 @@ type Post = {
   comments?: { userId: string; userName: string; content: string; createdAt: Timestamp }[]
   workoutId?: string
   workout?: Workout
+  mood?: string
 }
 
 type UserProfile = {
   username: string
   name: string
 }
+
+const moodOptions = [
+  "Feeling pumped! 💪",
+  "Didn't want to workout today 😓",
+  "Crushed it! 🔥",
+  "Feeling sore but satisfied 😊",
+  "New personal best! 🎉",
+  "Need more motivation 😕",
+  "Rest day vibes 😴",
+  "Ready to conquer 🦁",
+  "Post-workout high 🚀",
+  "Struggling but pushing through 💯"
+]
 
 export default function Feed() {
   const { user } = useAuth()
@@ -61,6 +75,7 @@ export default function Feed() {
   const [selectedWorkout, setSelectedWorkout] = useState<string | null>(null)
   const [previewWorkout, setPreviewWorkout] = useState<Workout | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [selectedMood, setSelectedMood] = useState<string | null>(null)
 
   useEffect(() => {
     if (!db || !user) return
@@ -146,7 +161,8 @@ export default function Feed() {
         userName: userProfile.username,
         createdAt: serverTimestamp(),
         likes: [],
-        comments: []
+        comments: [],
+        mood: selectedMood
       })
 
       if (selectedWorkout) {
@@ -160,6 +176,7 @@ export default function Feed() {
       setNewPost('')
       setSelectedWorkout(null)
       setPreviewWorkout(null)
+      setSelectedMood(null)
     } catch (err) {
       console.error('Error adding post:', err)
       setError('Failed to add post. Please try again.')
@@ -236,11 +253,11 @@ export default function Feed() {
             className="w-full p-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none"
             rows={3}
           />
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0 sm:space-x-2">
             <select
               value={selectedWorkout || ''}
               onChange={(e) => setSelectedWorkout(e.target.value || null)}
-              className="p-2 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              className="w-full sm:w-auto p-2 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
             >
               <option value="">Attach a workout</option>
               {workouts.map((workout) => (
@@ -249,9 +266,21 @@ export default function Feed() {
                 </option>
               ))}
             </select>
+            <select
+              value={selectedMood || ''}
+              onChange={(e) => setSelectedMood(e.target.value || null)}
+              className="w-full sm:w-auto p-2 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            >
+              <option value="">How are you feeling?</option>
+              {moodOptions.map((mood) => (
+                <option key={mood} value={mood}>
+                  {mood}
+                </option>
+              ))}
+            </select>
             <button
               type="submit"
-              className="bg-yellow-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-opacity-50 flex items-center"
+              className="w-full sm:w-auto bg-yellow-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-opacity-50 flex items-center justify-center"
             >
               <Send className="w-5 h-5 mr-2" />
               Post
@@ -293,6 +322,14 @@ export default function Feed() {
                   </button>
                 )}
               </div>
+              {post.mood && (
+                <div className="mb-2">
+                  <span className="inline-block bg-yellow-500 text-gray-900 px-2 py-1 rounded-full text-sm font-semibold">
+                    <Smile className="w-4 h-4 inline-block mr-1" />
+                    {post.mood}
+                  </span>
+                </div>
+              )}
               <p className="text-white mb-4">{post.content}</p>
               {post.workout && (
                 <div className="mb-4">
