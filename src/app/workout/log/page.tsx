@@ -126,7 +126,8 @@ export default function LogWorkout() {
   const [userWorkouts, setUserWorkouts] = useState<Workout[]>([])
   const [newWorkoutName, setNewWorkoutName] = useState('')
   const [restDuration, setRestDuration] = useState(60)
-  const [currentWorkoutName, setCurrentWorkoutName] = useState('')
+  const [currentWorkoutName, setCurrentWorkoutName]
+ = useState('')
   const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null)
 
   useEffect(() => {
@@ -431,20 +432,26 @@ export default function LogWorkout() {
               <h3 className="text-lg font-semibold text-white">Workout Timer</h3>
               <p className="text-3xl font-bold text-yellow-500">{formatTime(timer)}</p>
             </div>
-            <div className="flex justify-between items-center mt-4">
-              <h3 className="text-lg font-semibold text-white">Rest Timer</h3>
-              <div className="flex items-center space-x-2">
-                <p className="text-2xl font-bold text-yellow-500">{formatTime(restTimer)}</p>
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold text-white mb-2">Rest Timer</h3>
+              <div className="flex items-center space-x-4">
+                <div className="flex-1 bg-gray-700 h-4 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-yellow-500 transition-all duration-1000 ease-linear"
+                    style={{ width: `${(restTimer / restDuration) * 100}%` }}
+                  ></div>
+                </div>
+                <p className="text-2xl font-bold text-yellow-500 w-20 text-center">{formatTime(restTimer)}</p>
                 {isRestTimerRunning ? (
-                  <button onClick={() => setIsRestTimerRunning(false)} className="bg-red-500 text-white p-2 rounded-full">
+                  <button onClick={() => setIsRestTimerRunning(false)} className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors">
                     <Pause size={20} />
                   </button>
                 ) : (
-                  <button onClick={startRestTimer} className="bg-green-500 text-white p-2 rounded-full">
+                  <button onClick={startRestTimer} className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors">
                     <Play size={20} />
                   </button>
                 )}
-                <button onClick={() => setRestTimer(restDuration)} className="bg-blue-500 text-white p-2 rounded-full">
+                <button onClick={() => setRestTimer(restDuration)} className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors">
                   <RotateCcw size={20} />
                 </button>
               </div>
@@ -452,10 +459,10 @@ export default function LogWorkout() {
             <div className="flex justify-between items-center mt-4">
               <span className="text-white">Rest Duration: {formatTime(restDuration)}</span>
               <div className="flex items-center space-x-2">
-                <button onClick={() => adjustRestDuration(-30)} className="bg-gray-700 text-white p-2 rounded-full">
+                <button onClick={() => adjustRestDuration(-30)} className="bg-gray-700 text-white p-2 rounded-full hover:bg-gray-600 transition-colors">
                   <ChevronDown size={20} />
                 </button>
-                <button onClick={() => adjustRestDuration(30)} className="bg-gray-700 text-white p-2 rounded-full">
+                <button onClick={() => adjustRestDuration(30)} className="bg-gray-700 text-white p-2 rounded-full hover:bg-gray-600 transition-colors">
                   <ChevronUp size={20} />
                 </button>
               </div>
@@ -500,7 +507,7 @@ export default function LogWorkout() {
                   <button
                     type="button"
                     onClick={() => removeExercise(exerciseIndex)}
-                    className="bg-red-500 text-white p-2 rounded-full"
+                    className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
                   >
                     <X size={20} />
                   </button>
@@ -508,32 +515,36 @@ export default function LogWorkout() {
                 <div className="space-y-4">
                   {exercise.sets.map((set, setIndex) => (
                     <div key={setIndex} className="flex items-center space-x-2">
-                      <span className="text-white">Set {setIndex + 1}</span>
-                      <input
-                        type="number"
-                        value={set.reps}
-                        onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'reps', parseInt(e.target.value))}
-                        className="bg-gray-700 text-white rounded-lg p-2 w-20"
-                        placeholder="Reps"
-                      />
-                      <input
-                        type="number"
-                        value={set.weight}
-                        onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', parseInt(e.target.value))}
-                        className="bg-gray-700 text-white rounded-lg p-2 w-20"
-                        placeholder="Weight"
-                      />
+                      <span className="text-white w-16">Set {setIndex + 1}</span>
+                      <div className="flex-1 flex items-center space-x-2 bg-gray-700 rounded-lg p-2">
+                        <input
+                          type="number"
+                          value={set.reps}
+                          onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'reps', parseInt(e.target.value))}
+                          className="bg-transparent text-white w-16 text-center focus:outline-none"
+                          placeholder="Reps"
+                        />
+                        <span className="text-gray-400">x</span>
+                        <input
+                          type="number"
+                          value={set.weight}
+                          onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', parseInt(e.target.value))}
+                          className="bg-transparent text-white w-16 text-center focus:outline-none"
+                          placeholder="Weight"
+                        />
+                        <span className="text-gray-400">kg</span>
+                      </div>
                       <button
                         type="button"
                         onClick={() => toggleSetCompletion(exerciseIndex, setIndex)}
-                        className={`p-2 rounded-full ${set.completed ? 'bg-green-500' : 'bg-gray-700'}`}
+                        className={`p-2 rounded-full transition-colors ${set.completed ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 hover:bg-gray-600'}`}
                       >
                         <Check size={20} className="text-white" />
                       </button>
                       <button
                         type="button"
                         onClick={() => removeSet(exerciseIndex, setIndex)}
-                        className="bg-red-500 text-white p-2 rounded-full"
+                        className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
                       >
                         <X size={20} />
                       </button>
