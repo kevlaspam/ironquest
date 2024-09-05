@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from './AuthProvider'
-import { collection, query, where, getDocs } from 'firebase/firestore'
-import { db } from '../lib/firebase'
 import { Trophy, Dumbbell, Heart, Zap, Target, Award, Flame, Sunrise, Moon, Coffee, Pizza, Scale, Clock, Calendar, Rocket, Star, Zap as Lightning, Droplet, Mountain, Feather } from 'lucide-react'
+
+type Workout = {
+  id: string;
+  date: { seconds: number; nanoseconds: number };
+  exercises: { name: string; sets: { reps: number; weight: number }[] }[];
+  duration: number;
+}
 
 type Achievement = {
   id: string
@@ -35,40 +39,19 @@ const achievementsList: Omit<Achievement, 'unlocked'>[] = [
   { id: 'mountain_climber', name: 'Mountain Climber', description: 'Complete an outdoor workout at an elevation over 1000m', icon: <Mountain className="w-8 h-8 text-gray-700" /> },
 ]
 
-export function Achievements() {
-  const { user } = useAuth()
+export function Achievements({ workouts }: { workouts: Workout[] }) {
   const [achievements, setAchievements] = useState<Achievement[]>([])
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchAchievements = async () => {
-      if (!user) {
-        setLoading(false)
-        return
-      }
+    const unlockedAchievements = achievementsList.map(achievement => ({
+      ...achievement,
+      unlocked: checkAchievementUnlocked(achievement.id, workouts)
+    }))
 
-      try {
-        const workoutsQuery = query(collection(db, 'workouts'), where('userId', '==', user.uid))
-        const workoutsSnapshot = await getDocs(workoutsQuery)
-        const workouts = workoutsSnapshot.docs.map(doc => doc.data())
+    setAchievements(unlockedAchievements)
+  }, [workouts])
 
-        const unlockedAchievements = achievementsList.map(achievement => ({
-          ...achievement,
-          unlocked: checkAchievementUnlocked(achievement.id, workouts)
-        }))
-
-        setAchievements(unlockedAchievements)
-      } catch (error) {
-        console.error('Error fetching achievements:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchAchievements()
-  }, [user])
-
-  const checkAchievementUnlocked = (achievementId: string, workouts: any[]) => {
+  const checkAchievementUnlocked = (achievementId: string, workouts: Workout[]) => {
     switch (achievementId) {
       case 'first_workout':
         return workouts.length > 0
@@ -78,16 +61,16 @@ export function Achievements() {
       case 'total_workouts_20':
         return workouts.length >= 20
       case 'leg_master':
-        return workouts.filter(w => w.exercises.some((e: any) => e.name.toLowerCase().includes('leg') || e.name.toLowerCase().includes('squat'))).length >= 10
+        return workouts.filter(w => w.exercises.some(e => e.name.toLowerCase().includes('leg') || e.name.toLowerCase().includes('squat'))).length >= 10
       case 'chest_master':
-        return workouts.filter(w => w.exercises.some((e: any) => e.name.toLowerCase().includes('chest') || e.name.toLowerCase().includes('bench'))).length >= 10
+        return workouts.filter(w => w.exercises.some(e => e.name.toLowerCase().includes('chest') || e.name.toLowerCase().includes('bench'))).length >= 10
       case 'volume_king':
-        return workouts.some(w => w.exercises.reduce((total: number, e: any) => 
-          total + e.sets.reduce((setTotal: number, set: any) => setTotal + (set.reps * set.weight), 0), 0) >= 10000)
+        return workouts.some(w => w.exercises.reduce((total, e) => 
+          total + e.sets.reduce((setTotal, set) => setTotal + (set.reps * set.weight), 0), 0) >= 10000)
       case 'all_rounder':
         const muscleGroups = ['chest', 'back', 'legs', 'shoulders', 'arms']
         return muscleGroups.every(group => 
-          workouts.some(w => w.exercises.some((e: any) => e.name.toLowerCase().includes(group)))
+          workouts.some(w => w.exercises.some(e => e.name.toLowerCase().includes(group)))
         )
       default:
         return false
@@ -96,22 +79,6 @@ export function Achievements() {
 
   const unlockedCount = achievements.filter(a => a.unlocked).length
   const totalCount = achievementsList.length
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-yellow-500"></div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return (
-      <div className="text-center text-white p-8 bg-gray-800 rounded-xl shadow-lg">
-        <p className="text-xl font-semibold mb-2">Please sign in to view your achievements.</p>
-      </div>
-    )
-  }
 
   return (
     <div>
