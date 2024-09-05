@@ -30,6 +30,7 @@ type UserProfile = {
   activityLevel: string
   weightHistory: WeightEntry[]
   bodyFatHistory: BodyFatEntry[]
+  profileEmoji: string
 }
 
 const goalIcons: { [key: string]: JSX.Element } = {
@@ -52,7 +53,16 @@ const defaultProfile: UserProfile = {
   activityLevel: '',
   weightHistory: [],
   bodyFatHistory: [],
+  profileEmoji: '💪'
 }
+
+const emojiOptions = [
+  '💪', '🏋️', '🏃', '🧘', '🚴', '🏊', '🤸', // Fitness-related
+  '🐶', '🐱', '🦁', '🐯', '🐻', '🐼', '🐨', '🐷', '🐸', '🦊', '🐒', // Animals for personality
+  '🦅', '🦄', '🦋', '🐍', '🐢', '🐬', '🦜', '🐠', '🦓', '🐎', // More animals
+  '🎧', '📸', '🎮', '🏆', '⚽', '🏀', '🎸', '🎨', '🎤', '🚗', '🚴‍♀️', // Hobbies and lifestyle
+  '🌟', '🔥', '🌈', '✨', '💎', '🎯', '🌻', '🍀', '🎲' // Symbolic or aesthetic options
+];
 
 export default function ProfilePage() {
   const { user } = useAuth()
@@ -83,6 +93,7 @@ export default function ProfilePage() {
             ...profileData,
             weightHistory: profileData.weightHistory || [],
             bodyFatHistory: profileData.bodyFatHistory || [],
+            profileEmoji: profileData.profileEmoji || '💪'
           })
         } else {
           await setDoc(doc(db, 'userProfiles', user.uid), defaultProfile)
@@ -226,6 +237,26 @@ export default function ProfilePage() {
     }
   }
 
+  const handleEmojiChange = async (emoji: string) => {
+    if (!user) return
+
+    try {
+      await updateDoc(doc(db, 'userProfiles', user.uid), {
+        profileEmoji: emoji
+      })
+
+      setProfile(prev => ({
+        ...prev,
+        profileEmoji: emoji
+      }))
+
+      alert('Profile emoji updated successfully!')
+    } catch (err) {
+      console.error('Error updating profile emoji:', err)
+      setError('Failed to update profile emoji. Please try again.')
+    }
+  }
+
   if (!user) {
     return <div className="text-center mt-10 text-white">Please sign in to view your profile.</div>
   }
@@ -243,12 +274,11 @@ export default function ProfilePage() {
       <MainMenu />
       <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center">Your GymGa.me Profile</h1>
       
-      {/* Updated Profile Card */}
       <div ref={profileCardRef} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
-            <div className="bg-yellow-500 rounded-full p-3">
-              <User className="w-6 h-6 text-gray-900" />
+            <div className="bg-yellow-500 rounded-full p-3 text-4xl">
+              {profile.profileEmoji}
             </div>
             <div>
               <h2 className="text-2xl font-bold text-white">{profile.username || profile.name || 'New Hero'}</h2>
@@ -415,6 +445,21 @@ export default function ProfilePage() {
               <option value="very">Expert (intense exercise 6-7 days/week)</option>
               <option value="extra">Legendary (very intense exercise & physical job)</option>
             </select>
+          </div>
+        </div>
+        <div className="mt-4">
+          <label htmlFor="profileEmoji" className="block text-gray-300 font-bold mb-2">Profile Emoji</label>
+          <div className="flex flex-wrap gap-2">
+            {emojiOptions.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => handleEmojiChange(emoji)}
+                className={`text-2xl p-2 rounded-full ${profile.profileEmoji === emoji ? 'bg-yellow-500' : 'bg-gray-700'} hover:bg-yellow-400 transition-colors duration-200`}
+              >
+                {emoji}
+              </button>
+            ))}
           </div>
         </div>
         <button
