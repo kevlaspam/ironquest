@@ -7,11 +7,11 @@ import { collection, addDoc, serverTimestamp, query, where, getDocs, deleteDoc, 
 import { MainMenu } from '../../../components/MainMenu'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import { Clipboard, ChevronRight, X, Plus, Save, Dumbbell, Play, Pause, RotateCcw, Trash2 } from 'lucide-react'
+import { Clipboard, ChevronRight, X, Plus, Save, Dumbbell, Play, Pause, RotateCcw, Trash2, ChevronUp, ChevronDown, Check } from 'lucide-react'
 
 type Exercise = {
   name: string
-  sets: { reps: number; weight: number }[]
+  sets: { reps: number; weight: number; completed: boolean }[]
 }
 
 type Workout = {
@@ -21,12 +21,38 @@ type Workout = {
 }
 
 const exerciseOptions = [
-  'Barbell Bench Press', 'Incline Dumbbell Press', 'Chest Dips', 'Tricep Rope Pushdown', 'Overhead Tricep Extension',
-  'Iso-Lateral Row', 'Lat Pulldown', 'T-Bar Row', 'Seated Cable Row', 'Barbell Curl', 'Hammer Curls',
-  'Overhead Barbell Press', 'Side Lateral Raises', 'Rear Delt Flyes', 'Face Pulls', 'Shrugs',
-  'Leg Press', 'Hack Squat', 'Leg Curl', 'Leg Extension', 'Calf Raises',
-  'Incline Barbell Press', 'Dumbbell Shoulder Press', 'Cable Flyes', 'Lateral Raises', 'Tricep Dips',
-  'Bent Over Row', 'Deadlift', 'Concentration Curl'
+  // Chest
+  'Barbell Bench Press', 'Incline Dumbbell Press', 'Decline Bench Press', 'Chest Dips', 'Push-Ups',
+  'Cable Flyes', 'Pec Deck Machine', 'Landmine Press', 'Smith Machine Bench Press',
+  // Back
+  'Lat Pulldown', 'Seated Cable Row', 'Bent Over Barbell Row', 'T-Bar Row', 'Pull-Ups',
+  'Chin-Ups', 'Face Pulls', 'Straight Arm Pulldown', 'Single-Arm Dumbbell Row',
+  // Shoulders
+  'Overhead Barbell Press', 'Dumbbell Shoulder Press', 'Arnold Press', 'Lateral Raises',
+  'Front Raises', 'Reverse Flyes', 'Upright Rows', 'Shrugs',
+  // Biceps
+  'Barbell Curl', 'Dumbbell Curl', 'Hammer Curls', 'Preacher Curls', 'Concentration Curls',
+  'Cable Curls', 'Incline Dumbbell Curls', 'Spider Curls',
+  // Triceps
+  'Tricep Pushdowns', 'Overhead Tricep Extension', 'Skull Crushers', 'Close-Grip Bench Press',
+  'Diamond Push-Ups', 'Tricep Dips', 'Cable Tricep Kickbacks',
+  // Legs
+  'Barbell Back Squat', 'Front Squat', 'Leg Press', 'Romanian Deadlift', 'Lunges',
+  'Leg Extensions', 'Leg Curls', 'Calf Raises', 'Hip Thrusts', 'Bulgarian Split Squats',
+  // Abs
+  'Crunches', 'Planks', 'Russian Twists', 'Leg Raises', 'Ab Wheel Rollouts',
+  'Hanging Leg Raises', 'Cable Crunches', 'Mountain Climbers',
+  // Compound Movements
+  'Deadlifts', 'Power Cleans', 'Barbell Rows', 'Dumbbell Thrusters',
+  // Machines
+  'Chest Press Machine', 'Shoulder Press Machine', 'Leg Press Machine', 'Seated Leg Curl Machine',
+  'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Tricep Pushdown Machine',
+  // Bodyweight
+  'Push-Ups', 'Pull-Ups', 'Dips', 'Squats', 'Lunges', 'Burpees', 'Mountain Climbers',
+  'Plank', 'Side Plank', 'Glute Bridges', 'Step-Ups',
+  // Cable Exercises
+  'Cable Crossovers', 'Cable Woodchoppers', 'Cable Crunches', 'Cable Lateral Raises',
+  'Cable Face Pulls', 'Cable Tricep Pushdowns', 'Cable Bicep Curls'
 ]
 
 const preFilledWorkouts = {
@@ -34,74 +60,85 @@ const preFilledWorkouts = {
     name: 'Chest/Triceps',
     icon: '💪',
     exercises: [
-      { name: 'Barbell Bench Press', sets: [{ reps: 8, weight: 0 }, { reps: 8, weight: 0 }, { reps: 8, weight: 0 }, { reps: 8, weight: 0 }] },
-      { name: 'Incline Dumbbell Press', sets: [{ reps: 10, weight: 0 }, { reps: 10, weight: 0 }, { reps: 10, weight: 0 }] },
-      { name: 'Chest Dips', sets: [{ reps: 12, weight: 0 }, { reps: 12, weight: 0 }, { reps: 12, weight: 0 }] },
-      { name: 'Tricep Rope Pushdown', sets: [{ reps: 14, weight: 0 }, { reps: 14, weight: 0 }, { reps: 14, weight: 0 }] },
-      { name: 'Overhead Tricep Extension', sets: [{ reps: 11, weight: 0 }, { reps: 11, weight: 0 }, { reps: 11, weight: 0 }] },
+      { name: 'Barbell Bench Press', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'Incline Dumbbell Press', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'Chest Dips', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'Tricep Pushdowns', sets: [{ reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }] },
+      { name: 'Overhead Tricep Extension', sets: [{ reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }] },
     ]
   },
   backBiceps: {
     name: 'Back/Biceps',
     icon: '🏋️',
     exercises: [
-      { name: 'Iso-Lateral Row', sets: [{ reps: 9, weight: 0 }, { reps: 9, weight: 0 }, { reps: 9, weight: 0 }, { reps: 9, weight: 0 }] },
-      { name: 'Lat Pulldown', sets: [{ reps: 10, weight: 0 }, { reps: 10, weight: 0 }, { reps: 10, weight: 0 }] },
-      { name: 'T-Bar Row', sets: [{ reps: 9, weight: 0 }, { reps: 9, weight: 0 }, { reps: 9, weight: 0 }] },
-      { name: 'Seated Cable Row', sets: [{ reps: 11, weight: 0 }, { reps: 11, weight: 0 }, { reps: 11, weight: 0 }] },
-      { name: 'Barbell Curl', sets: [{ reps: 11, weight: 0 }, { reps: 11, weight: 0 }, { reps: 11, weight: 0 }] },
-      { name: 'Hammer Curls', sets: [{ reps: 11, weight: 0 }, { reps: 11, weight: 0 }, { reps: 11, weight: 0 }] },
+      { name: 'Lat Pulldown', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'Seated Cable Row', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'T-Bar Row', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'Barbell Curl', sets: [{ reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }] },
+      { name: 'Hammer Curls', sets: [{ reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }] },
     ]
   },
   shoulders: {
     name: 'Shoulders',
     icon: '🏔️',
     exercises: [
-      { name: 'Overhead Barbell Press', sets: [{ reps: 7, weight: 0 }, { reps: 7, weight: 0 }, { reps: 7, weight: 0 }, { reps: 7, weight: 0 }] },
-      { name: 'Side Lateral Raises', sets: [{ reps: 14, weight: 0 }, { reps: 14, weight: 0 }, { reps: 14, weight: 0 }] },
-      { name: 'Rear Delt Flyes', sets: [{ reps: 14, weight: 0 }, { reps: 14, weight: 0 }, { reps: 14, weight: 0 }] },
-      { name: 'Face Pulls', sets: [{ reps: 14, weight: 0 }, { reps: 14, weight: 0 }, { reps: 14, weight: 0 }] },
-      { name: 'Shrugs', sets: [{ reps: 11, weight: 0 }, { reps: 11, weight: 0 }, { reps: 11, weight: 0 }] },
+      { name: 'Overhead Barbell Press', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'Lateral Raises', sets: [{ reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }] },
+      { name: 'Front Raises', sets: [{ reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }] },
+      { name: 'Face Pulls', sets: [{ reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }] },
+      { name: 'Shrugs', sets: [{ reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }] },
     ]
   },
   legs: {
     name: 'Legs',
     icon: '🦵',
     exercises: [
-      { name: 'Leg Press', sets: [{ reps: 9, weight: 0 }, { reps: 9, weight: 0 }, { reps: 9, weight: 0 }, { reps: 9, weight: 0 }] },
-      { name: 'Hack Squat', sets: [{ reps: 10, weight: 0 }, { reps: 10, weight: 0 }, { reps: 10, weight: 0 }] },
-      { name: 'Leg Curl', sets: [{ reps: 11, weight: 0 }, { reps: 11, weight: 0 }, { reps: 11, weight: 0 }] },
-      { name: 'Leg Extension', sets: [{ reps: 11, weight: 0 }, { reps: 11, weight: 0 }, { reps: 11, weight: 0 }] },
-      { name: 'Calf Raises', sets: [{ reps: 18, weight: 0 }, { reps: 18, weight: 0 }, { reps: 18, weight: 0 }] },
+      { name: 'Barbell Back Squat', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'Romanian Deadlift', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'Leg Press', sets: [{ reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }] },
+      { name: 'Leg Extensions', sets: [{ reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }] },
+      { name: 'Calf Raises', sets: [{ reps: 15, weight: 0, completed: false }, { reps: 15, weight: 0, completed: false }, { reps: 15, weight: 0, completed: false }] },
     ]
   },
-  chestShouldersTriceps: {
-    name: 'Chest/Shoulders/Triceps',
-    icon: '💪🏔️',
+  fullBody: {
+    name: 'Full Body',
+    icon: '💪🏋️',
     exercises: [
-      { name: 'Incline Barbell Press', sets: [{ reps: 7, weight: 0 }, { reps: 7, weight: 0 }, { reps: 7, weight: 0 }, { reps: 7, weight: 0 }] },
-      { name: 'Dumbbell Shoulder Press', sets: [{ reps: 10, weight: 0 }, { reps: 10, weight: 0 }, { reps: 10, weight: 0 }] },
-      { name: 'Cable Flyes', sets: [{ reps: 11, weight: 0 }, { reps: 11, weight: 0 }, { reps: 11, weight: 0 }] },
-      { name: 'Lateral Raises', sets: [{ reps: 14, weight: 0 }, { reps: 14, weight: 0 }, { reps: 14, weight: 0 }] },
-      { name: 'Tricep Dips', sets: [{ reps: 11, weight: 0 }, { reps: 11, weight: 0 }, { reps: 11, weight: 0 }] },
+      { name: 'Barbell Bench Press', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'Lat Pulldown', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'Barbell Back Squat', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'Overhead Barbell Press', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'Barbell Curl', sets: [{ reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }] },
+      { name: 'Tricep Pushdowns', sets: [{ reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }, { reps: 10, weight: 0, completed: false }] },
     ]
   },
-  backBicepsAlt: {
-    name: 'Back/Biceps (Alt)',
-    icon: '🏋️‍♂️',
+  bodyweightBasic: {
+    name: 'Bodyweight Basic',
+    icon: '🏃',
     exercises: [
-      { name: 'Bent Over Row', sets: [{ reps: 9, weight: 0 }, { reps: 9, weight: 0 }, { reps: 9, weight: 0 }, { reps: 9, weight: 0 }] },
-      { name: 'Lat Pulldown', sets: [{ reps: 10, weight: 0 }, { reps: 10, weight: 0 }, { reps: 10, weight: 0 }] },
-      { name: 'Deadlift', sets: [{ reps: 6, weight: 0 }, { reps: 6, weight: 0 }, { reps: 6, weight: 0 }] },
-      { name: 'Concentration Curl', sets: [{ reps: 12, weight: 0 }, { reps: 12, weight: 0 }, { reps: 12, weight: 0 }] },
-      { name: 'Face Pulls', sets: [{ reps: 14, weight: 0 }, { reps: 14, weight: 0 }, { reps: 14, weight: 0 }] },
+      { name: 'Push-Ups', sets: [{ reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }] },
+      { name: 'Pull-Ups', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'Squats', sets: [{ reps: 15, weight: 0, completed: false }, { reps: 15, weight: 0, completed: false }, { reps: 15, weight: 0, completed: false }] },
+      { name: 'Lunges', sets: [{ reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }] },
+      { name: 'Plank', sets: [{ reps: 30, weight: 0, completed: false }, { reps: 30, weight: 0, completed: false }, { reps: 30, weight: 0, completed: false }] },
+    ]
+  },
+  absCore: {
+    name: 'Abs & Core',
+    icon: '🧘',
+    exercises: [
+      { name: 'Crunches', sets: [{ reps: 15, weight: 0, completed: false }, { reps: 15, weight: 0, completed: false }, { reps: 15, weight: 0, completed: false }] },
+      { name: 'Russian Twists', sets: [{ reps: 20, weight: 0, completed: false }, { reps: 20, weight: 0, completed: false }, { reps: 20, weight: 0, completed: false }] },
+      { name: 'Leg Raises', sets: [{ reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }] },
+      { name: 'Plank', sets: [{ reps: 30, weight: 0, completed: false }, { reps: 30, weight: 0, completed: false }, { reps: 30, weight: 0, completed: false }] },
+      { name: 'Mountain Climbers', sets: [{ reps: 20, weight: 0, completed: false }, { reps: 20, weight: 0, completed: false }, { reps: 20, weight: 0, completed: false }] },
     ]
   },
 }
 
 export default function LogWorkout() {
   const { user } = useAuth()
-  const [exercises, setExercises] = useState<Exercise[]>([{ name: '', sets: [{ reps: 0, weight: 0 }] }])
+  const [exercises, setExercises] = useState<Exercise[]>([{ name: '', sets: [{ reps: 0, weight: 0, completed: false }] }])
   const [timer, setTimer] = useState(0)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [workoutStarted, setWorkoutStarted] = useState(false)
@@ -109,6 +146,8 @@ export default function LogWorkout() {
   const [isRestTimerRunning, setIsRestTimerRunning] = useState(false)
   const [userWorkouts, setUserWorkouts] = useState<Workout[]>([])
   const [newWorkoutName, setNewWorkoutName] = useState('')
+  const [restDuration, setRestDuration] = useState(60)
+  const [currentWorkoutName, setCurrentWorkoutName] = useState('')
 
   useEffect(() => {
     if (user) {
@@ -185,9 +224,15 @@ export default function LogWorkout() {
     setExercises(newExercises)
   }
 
+  const toggleSetCompletion = (exerciseIndex: number, setIndex: number) => {
+    const newExercises = [...exercises]
+    newExercises[exerciseIndex].sets[setIndex].completed = !newExercises[exerciseIndex].sets[setIndex].completed
+    setExercises(newExercises)
+  }
+
   const addSet = (exerciseIndex: number) => {
     const newExercises = [...exercises]
-    newExercises[exerciseIndex].sets.push({ reps: 0, weight: 0 })
+    newExercises[exerciseIndex].sets.push({ reps: 0, weight: 0, completed: false })
     setExercises(newExercises)
   }
 
@@ -198,7 +243,7 @@ export default function LogWorkout() {
   }
 
   const addExercise = () => {
-    setExercises([...exercises, { name: '', sets: [{ reps: 0, weight: 0 }] }])
+    setExercises([...exercises, { name: '', sets: [{ reps: 0, weight: 0, completed: false }] }])
   }
 
   const removeExercise = (index: number) => {
@@ -208,8 +253,12 @@ export default function LogWorkout() {
   }
 
   const startRestTimer = () => {
-    setRestTimer(60)
+    setRestTimer(restDuration)
     setIsRestTimerRunning(true)
+  }
+
+  const adjustRestDuration = (adjustment: number) => {
+    setRestDuration(prevDuration => Math.max(30, prevDuration + adjustment))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -219,19 +268,26 @@ export default function LogWorkout() {
       return
     }
 
+    if (!currentWorkoutName.trim()) {
+      toast.error('Please enter a name for your workout')
+      return
+    }
+
     setIsTimerRunning(false)
 
     try {
       await addDoc(collection(db, 'workouts'), {
         userId: user.uid,
+        name: currentWorkoutName,
         exercises,
         duration: timer,
         date: serverTimestamp(),
       })
       toast.success('Workout logged successfully!')
-      setExercises([{ name: '', sets: [{ reps: 0, weight: 0 }] }])
+      setExercises([{ name: '', sets: [{ reps: 0, weight: 0, completed: false }] }])
       setTimer(0)
       setWorkoutStarted(false)
+      setCurrentWorkoutName('')
     } catch (error) {
       console.error('Error adding document: ', error)
       toast.error('Failed to log workout. Please try again.')
@@ -379,11 +435,22 @@ export default function LogWorkout() {
       ) : (
         <div className="space-y-6">
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-white">Workout Timer</h2>
-              <p className="text-3xl font-bold text-yellow-500">{formatTime(timer)}</p>
+            <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-white mb-2 md:mb-0">Name Your Workout</h2>
+              <input
+                type="text"
+                value={currentWorkoutName}
+                onChange={(e) => setCurrentWorkoutName(e.target.value)}
+                placeholder="Enter workout name"
+                className="bg-gray-700 text-white rounded-lg p-2 w-full md:w-1/2"
+                required
+              />
             </div>
             <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-white">Workout Timer</h3>
+              <p className="text-3xl font-bold text-yellow-500">{formatTime(timer)}</p>
+            </div>
+            <div className="flex justify-between items-center mt-4">
               <h3 className="text-lg font-semibold text-white">Rest Timer</h3>
               <div className="flex items-center space-x-2">
                 <p className="text-2xl font-bold text-yellow-500">{formatTime(restTimer)}</p>
@@ -396,8 +463,19 @@ export default function LogWorkout() {
                     <Play size={20} />
                   </button>
                 )}
-                <button onClick={() => setRestTimer(60)} className="bg-blue-500 text-white p-2 rounded-full">
+                <button onClick={() => setRestTimer(restDuration)} className="bg-blue-500 text-white p-2 rounded-full">
                   <RotateCcw size={20} />
+                </button>
+              </div>
+            </div>
+            <div className="flex justify-between items-center mt-4">
+              <span className="text-white">Rest Duration: {formatTime(restDuration)}</span>
+              <div className="flex items-center space-x-2">
+                <button onClick={() => adjustRestDuration(-30)} className="bg-gray-700 text-white p-2 rounded-full">
+                  <ChevronDown size={20} />
+                </button>
+                <button onClick={() => adjustRestDuration(30)} className="bg-gray-700 text-white p-2 rounded-full">
+                  <ChevronUp size={20} />
                 </button>
               </div>
             </div>
@@ -423,98 +501,74 @@ export default function LogWorkout() {
                   <button
                     type="button"
                     onClick={() => removeExercise(exerciseIndex)}
-                    className="text-red-500 hover:text-red-600"
+                    className="bg-red-500 text-white p-2 rounded-full"
                   >
                     <X size={20} />
                   </button>
                 </div>
-                <table className="w-full">
-                  <thead>
-                    <tr>
-                      <th className="text-left text-gray-400">Set</th>
-                      <th className="text-left text-gray-400">Reps</th>
-                      <th className="text-left text-gray-400">Weight (kg)</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {exercise.sets.map((set, setIndex) => (
-                      <tr key={setIndex} className="border-b border-gray-700">
-                        <td className="py-2 text-white">{setIndex + 1}</td>
-                        <td className="py-2">
-                          <input
-                            type="number"
-                            value={set.reps}
-                            onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'reps', parseInt(e.target.value))}
-                            className="bg-gray-700 text-white rounded-lg p-2 w-full"
-                            required
-                          />
-                        </td>
-                        <td className="py-2">
-                          <input
-                            type="number"
-                            value={set.weight}
-                            onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', parseInt(e.target.value))}
-                            className="bg-gray-700 text-white rounded-lg p-2 w-full"
-                            required
-                          />
-                        </td>
-                        <td className="py-2">
-                          <button
-                            type="button"
-                            onClick={() => removeSet(exerciseIndex, setIndex)}
-                            className="text-red-500 hover:text-red-600"
-                          >
-                            <X size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                {exercise.sets.map((set, setIndex) => (
+                  <div key={setIndex} className="flex items-center space-x-2 mb-2">
+                    <input
+                      type="number"
+                      value={set.reps}
+                      onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'reps', parseInt(e.target.value))}
+                      placeholder="Reps"
+                      className="bg-gray-700 text-white rounded-lg p-2 w-1/4"
+                      required
+                    />
+                    <input
+                      type="number"
+                      value={set.weight}
+                      onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', parseInt(e.target.value))}
+                      placeholder="Weight"
+                      className="bg-gray-700 text-white rounded-lg p-2 w-1/4"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleSetCompletion(exerciseIndex, setIndex)}
+                      className={`p-2 rounded-full ${
+                        set.completed ? 'bg-green-500' : 'bg-gray-500'
+                      }`}
+                    >
+                      <Check size={20} className="text-white" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeSet(exerciseIndex, setIndex)}
+                      className="bg-red-500 text-white p-2 rounded-full"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                ))}
                 <button
                   type="button"
                   onClick={() => addSet(exerciseIndex)}
-                  className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-colors duration-200 flex items-center"
+                  className="bg-blue-500 text-white p-2 rounded-full mt-2"
                 >
-                  <Plus size={16} className="mr-2" /> Add Set
+                  <Plus size={20} />
                 </button>
               </div>
             ))}
-            <div className="flex justify-between">
+<div className="flex justify-center space-x-4 mt-8">
               <button
                 type="button"
                 onClick={addExercise}
-                className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-colors duration-200 flex items-center"
+                className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-6 py-3 rounded-lg flex items-center shadow-lg hover:shadow-xl transition-shadow duration-300 border-2 border-yellow-400"
               >
-                <Plus size={16} className="mr-2" /> Add Exercise
+                <Plus size={20} className="mr-2" />
+                Add Exercise
               </button>
               <button
                 type="submit"
-                className="bg-yellow-500 text-gray-900 px-6 py-2 rounded-full hover:bg-yellow-400 transition-colors duration-200 flex items-center"
+                className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg flex items-center shadow-lg hover:shadow-xl transition-shadow duration-300 border-2 border-green-400"
               >
-                <Dumbbell size={16} className="mr-2" /> Complete Workout
+                <Save size={20} className="mr-2" />
+                Log Workout
               </button>
             </div>
           </form>
-          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
-            <h3 className="text-xl font-semibold text-white mb-4">Save This Workout</h3>
-            <div className="flex items-center space-x-4">
-              <input
-                type="text"
-                value={newWorkoutName}
-                onChange={(e) => setNewWorkoutName(e.target.value)}
-                placeholder="Enter workout name"
-                className="bg-gray-700 text-white rounded-lg p-2 flex-grow"
-              />
-              <button
-                onClick={saveWorkout}
-                className="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600 transition-colors duration-200 flex items-center"
-              >
-                <Save size={16} className="mr-2" /> Save Workout
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </div>
