@@ -391,7 +391,7 @@ export default function LogWorkout() {
           {userWorkouts.length === 0 ? (
             <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500 text-center">
               <p className="text-white mb-4">You haven&apos;t saved any workouts yet.</p>
-              <p className="text-gray-300">Go to the 'History' page to save one of your previous workouts as a template!</p>
+              <p className="text-gray-300">Go to the &apos;History&apos; page to save one of your previous workouts as a template!</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
