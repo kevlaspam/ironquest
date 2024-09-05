@@ -2,10 +2,10 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useAuth } from '../../components/AuthProvider'
-import { collection, query, where, getDocs, orderBy, limit, deleteDoc, doc, updateDoc } from 'firebase/firestore'
+import { collection, query, where, getDocs, orderBy, limit, deleteDoc, doc, updateDoc, addDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import { MainMenu } from '../../components/MainMenu'
-import { Trash2, AlertCircle, Calendar, Clock, Dumbbell, Share2, ChevronDown, ChevronUp, Edit2, Sword, Trophy } from 'lucide-react'
+import { Trash2, AlertCircle, Calendar, Clock, Dumbbell, Share2, ChevronDown, ChevronUp, Edit2, Sword, Trophy, Save } from 'lucide-react'
 import html2canvas from 'html2canvas'
 
 type Set = {
@@ -92,7 +92,7 @@ export default function Dashboard() {
           scale: 2,
           logging: false,
           useCORS: true,
-          backgroundColor: '#1F2937', // Match the background color
+          backgroundColor: '#1F2937',
           onclone: (clonedDoc) => {
             const clonedElement = clonedDoc.getElementById(workoutId);
             if (clonedElement) {
@@ -135,6 +135,23 @@ export default function Dashboard() {
     } catch (err) {
       console.error('Error renaming workout:', err);
       setError(`Failed to rename workout: ${(err as Error).message}`);
+    }
+  }
+
+  const handleSaveAsTemplate = async (workout: Workout) => {
+    if (!user || !db) return;
+
+    try {
+      const templateData = {
+        userId: user.uid,
+        name: workout.name,
+        exercises: workout.exercises
+      };
+      await addDoc(collection(db, 'userWorkouts'), templateData);
+      alert('Workout saved as template!');
+    } catch (err) {
+      console.error('Error saving workout as template:', err);
+      setError(`Failed to save workout as template: ${(err as Error).message}`);
     }
   }
 
@@ -212,6 +229,13 @@ export default function Dashboard() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
+                      onClick={() => handleSaveAsTemplate(workout)}
+                      className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50"
+                      aria-label="Save as template"
+                    >
+                      <Save className="h-5 w-5" />
+                    </button>
+                    <button
                       onClick={() => handleScreenshot(workout.id)}
                       className="bg-yellow-500 text-gray-900 p-2 rounded-full hover:bg-yellow-400 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-opacity-50"
                       aria-label="Take screenshot"
@@ -286,7 +310,7 @@ export default function Dashboard() {
                         {exercise.name}
                       </h3>
                       <div className="text-gray-300 text-sm">
-                        {expandedWorkouts.includes(workout.id) ? (
+                      {expandedWorkouts.includes(workout.id) ? (
                           <ul className="space-y-2">
                             {exercise.sets.map((set, setIndex) => (
                               <li
