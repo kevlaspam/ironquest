@@ -7,11 +7,16 @@ import { db } from '../../lib/firebase'
 import { MainMenu } from '../../components/MainMenu'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import html2canvas from 'html2canvas'
-import { Dumbbell, Scale, Target, Activity, Share2, User, Sword, Loader2 } from 'lucide-react'
+import { Dumbbell, Scale, Target, Activity, Share2, User, Sword, Loader2, Percent } from 'lucide-react'
 
 type WeightEntry = {
   date: string
   weight: number
+}
+
+type BodyFatEntry = {
+  date: string
+  bodyFat: number
 }
 
 type UserProfile = {
@@ -24,6 +29,7 @@ type UserProfile = {
   fitnessGoal: string
   activityLevel: string
   weightHistory: WeightEntry[]
+  bodyFatHistory: BodyFatEntry[]
 }
 
 const goalIcons: { [key: string]: JSX.Element } = {
@@ -45,6 +51,7 @@ const defaultProfile: UserProfile = {
   fitnessGoal: 'overall_health',
   activityLevel: '',
   weightHistory: [],
+  bodyFatHistory: [],
 }
 
 export default function ProfilePage() {
@@ -53,6 +60,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [newWeight, setNewWeight] = useState<number | ''>('')
+  const [newBodyFat, setNewBodyFat] = useState<number | ''>('')
   const [totalWorkouts, setTotalWorkouts] = useState(0)
   const [totalWeightLifted, setTotalWeightLifted] = useState(0)
   const profileCardRef = useRef<HTMLDivElement>(null)
@@ -74,9 +82,9 @@ export default function ProfilePage() {
             ...defaultProfile,
             ...profileData,
             weightHistory: profileData.weightHistory || [],
+            bodyFatHistory: profileData.bodyFatHistory || [],
           })
         } else {
-          // Create a new profile for the user
           await setDoc(doc(db, 'userProfiles', user.uid), defaultProfile)
           setProfile(defaultProfile)
         }
@@ -123,7 +131,6 @@ export default function ProfilePage() {
 
       if (newUsername) {
         const lowercaseNewUsername = newUsername.toLowerCase()
-        // Check if the new username already exists (case-insensitive)
         const usernameQuery = query(collection(db, 'userProfiles'), where('lowercaseUsername', '==', lowercaseNewUsername))
         const usernameSnapshot = await getDocs(usernameQuery)
         
@@ -176,6 +183,33 @@ export default function ProfilePage() {
     }
   }
 
+  const handleAddBodyFat = async () => {
+    if (!user || newBodyFat === '') return
+
+    const bodyFatEntry: BodyFatEntry = {
+      date: new Date().toISOString().split('T')[0],
+      bodyFat: Number(newBodyFat),
+    }
+
+    try {
+      await updateDoc(doc(db, 'userProfiles', user.uid), {
+        bodyFatHistory: arrayUnion(bodyFatEntry),
+      })
+
+      setProfile(prev => ({
+        ...prev,
+        bodyFatHistory: [...(prev.bodyFatHistory || []), bodyFatEntry],
+      }))
+
+      setNewBodyFat('')
+      alert('Body fat entry added successfully!')
+      setError(null)
+    } catch (err) {
+      console.error('Error adding body fat entry:', err)
+      setError('Failed to add body fat entry. Please try again.')
+    }
+  }
+
   const handleSaveProfileImage = async () => {
     if (profileCardRef.current) {
       try {
@@ -209,12 +243,12 @@ export default function ProfilePage() {
       <MainMenu />
       <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center">Your GymGa.me Profile</h1>
       
-      {/* Profile Card */}
+      {/* Updated Profile Card */}
       <div ref={profileCardRef} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
-            <div className="bg-gray-700 rounded-full p-4">
-              <User className="w-8 h-8 text-yellow-500" />
+            <div className="bg-yellow-500 rounded-full p-4">
+              <User className="w-8 h-8 text-gray-900" />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-white">{profile.username || profile.name || 'New Hero'}</h2>
@@ -229,7 +263,7 @@ export default function ProfilePage() {
             <span>Share Quest Log</span>
           </button>
         </div>
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-gray-700 rounded-lg p-3">
             <p className="text-sm text-gray-400">Height</p>
             <p className="text-lg font-semibold text-white">{profile.height || 0} cm</p>
@@ -251,13 +285,17 @@ export default function ProfilePage() {
             </p>
           </div>
         </div>
-        <div className="bg-gray-700 rounded-lg p-3 flex items-center justify-between">
+        <div className="bg-gray-700 rounded-lg p-4 flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-400">Quest Objective</p>
             <p className="text-lg font-semibold text-white flex items-center">
               {goalIcons[profile.fitnessGoal] || <Target className="w-6 h-6 text-yellow-500 mr-2" />}
               <span className="ml-2">{(profile.fitnessGoal || '').replace('_', ' ') || 'Not set'}</span>
             </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-400">Activity Level</p>
+            <p className="text-lg font-semibold text-white">{profile.activityLevel || 'Not set'}</p>
           </div>
         </div>
       </div>
@@ -387,7 +425,7 @@ export default function ProfilePage() {
         </button>
       </form>
 
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
         <h2 className="text-2xl font-bold mb-4 text-white">Weight Tracking</h2>
         <div className="flex items-center mb-4">
           <input
@@ -417,6 +455,40 @@ export default function ProfilePage() {
           </ResponsiveContainer>
         ) : (
           <p className="text-white text-center">No weight data available. Start logging your weight to see the chart!</p>
+        )}
+      </div>
+
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
+        <h2 className="text-2xl font-bold mb-4 text-white">Body Fat Tracking</h2>
+        <div className="flex items-center mb-4">
+          <input
+            type="number"
+            value={newBodyFat}
+            onChange={(e) => setNewBodyFat(e.target.value === '' ? '' : Number(e.target.value))}
+            placeholder="Enter body fat (%)"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-yellow-300 bg-gray-700 text-white mr-2"
+          />
+          <button
+            onClick={handleAddBodyFat}
+            className="bg-yellow-500 text-gray-900 py-2 px-4 rounded-full hover:bg-yellow-400 focus:outline-none focus:ring focus:border-yellow-300 transition-colors duration-200 font-bold flex items-center"
+          >
+            <Percent className="w-5 h-5 mr-2" />
+            Log Body Fat
+          </button>
+        </div>
+        {profile.bodyFatHistory && profile.bodyFatHistory.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={profile.bodyFatHistory}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="date" stroke="#9CA3AF" />
+              <YAxis stroke="#9CA3AF" />
+              <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', color: '#fff' }} />
+              <Legend />
+              <Line type="monotone" dataKey="bodyFat" stroke="#10B981" activeDot={{ r: 8 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-white text-center">No body fat data available. Start logging your body fat percentage to see the chart!</p>
         )}
       </div>
     </div>
