@@ -17,6 +17,7 @@ type WeightEntry = {
 type UserProfile = {
   name: string
   username: string
+  lowercaseUsername: string
   age: number
   height: number
   gender: string
@@ -37,6 +38,7 @@ const goalIcons: { [key: string]: JSX.Element } = {
 const defaultProfile: UserProfile = {
   name: '',
   username: '',
+  lowercaseUsername: '',
   age: 0,
   height: 0,
   gender: '',
@@ -120,8 +122,9 @@ export default function ProfilePage() {
       setUsernameError(null)
 
       if (newUsername) {
-        // Check if the new username already exists
-        const usernameQuery = query(collection(db, 'userProfiles'), where('username', '==', newUsername))
+        const lowercaseNewUsername = newUsername.toLowerCase()
+        // Check if the new username already exists (case-insensitive)
+        const usernameQuery = query(collection(db, 'userProfiles'), where('lowercaseUsername', '==', lowercaseNewUsername))
         const usernameSnapshot = await getDocs(usernameQuery)
         
         if (!usernameSnapshot.empty && usernameSnapshot.docs[0].id !== user.uid) {
@@ -133,6 +136,7 @@ export default function ProfilePage() {
       const updatedProfile = {
         ...profile,
         username: newUsername || profile.username,
+        lowercaseUsername: (newUsername || profile.username).toLowerCase(),
       }
 
       await setDoc(doc(db, 'userProfiles', user.uid), updatedProfile)
