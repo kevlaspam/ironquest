@@ -334,7 +334,7 @@ export default function LogWorkout() {
           <h2 className="text-2xl font-bold mb-4 text-white">Your Saved Workouts</h2>
           {userWorkouts.length === 0 ? (
             <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500 text-center">
-              <p className="text-white mb-4">You haven't saved any workouts yet.</p>
+              <p className="text-white mb-4">You haven&apos;t saved any workouts yet.</p>
               <p className="text-gray-300">Start a blank workout to create your own template!</p>
             </div>
           ) : (

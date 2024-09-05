@@ -1,11 +1,15 @@
+'use client'
+
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuth } from './AuthProvider'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Menu, X, Dumbbell, Home, PlusSquare, History, BarChart2, Award, User, LogOut, LogIn } from 'lucide-react'
 
 export function MainMenu() {
   const { user, signIn, signOut } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const router = useRouter()
 
   const menuItems = [
     { href: '/feed', label: 'Feed', icon: Home },
@@ -15,6 +19,11 @@ export function MainMenu() {
     { href: '/achievements', label: 'Achievements', icon: Award },
     { href: '/profile', label: 'Profile', icon: User },
   ]
+
+  const handleSignOut = useCallback(async () => {
+    await signOut()
+    router.push('/')
+  }, [signOut, router])
 
   return (
     <nav className="bg-gray-800 rounded-xl shadow-lg mb-8">
@@ -44,7 +53,7 @@ export function MainMenu() {
               ))}
               {user ? (
                 <button
-                  onClick={signOut}
+                  onClick={handleSignOut}
                   className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium relative group"
                   aria-label="Sign Out"
                 >
@@ -99,7 +108,7 @@ export function MainMenu() {
             ))}
             {user ? (
               <button
-                onClick={signOut}
+                onClick={handleSignOut}
                 className="text-gray-300 hover:bg-gray-700 hover:text-white block w-full text-left px-3 py-2 rounded-md text-base font-medium flex items-center"
               >
                 <LogOut className="h-5 w-5 mr-2" />
