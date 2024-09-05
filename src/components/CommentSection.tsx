@@ -1,22 +1,28 @@
 import { useState } from 'react'
 import { Timestamp } from 'firebase/firestore'
-import { Send } from 'lucide-react'
+import { Send, Heart, ChevronDown, ChevronUp } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
 
 type Comment = {
   userId: string
   userName: string
   content: string
   createdAt: Timestamp
+  likes?: string[]
 }
 
 type CommentSectionProps = {
   postId: string
   comments: Comment[]
   onComment: (postId: string, comment: string) => void
+  onLike: (postId: string, commentIndex: number) => void
+  currentUserId: string
 }
 
-export function CommentSection({ postId, comments, onComment }: CommentSectionProps) {
+export function CommentSection({ postId, comments, onComment, onLike, currentUserId }: CommentSectionProps) {
   const [newComment, setNewComment] = useState('')
+  const [expanded, setExpanded] = useState(false)
+  const visibleComments = expanded ? comments : comments.slice(0, 2)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,28 +33,55 @@ export function CommentSection({ postId, comments, onComment }: CommentSectionPr
   }
 
   return (
-    <div>
-      <div className="mb-4 max-h-40 overflow-y-auto">
-        {comments.map((comment, index) => (
-          <div key={index} className="mb-2">
-            <p className="text-sm">
-              <span className="font-semibold text-yellow-500">{comment.userName}</span>
-              <span className="text-gray-400 ml-2">
-                {new Date(comment.createdAt.seconds * 1000).toLocaleString()}
-              </span>
-            </p>
-            <p className="text-white">{comment.content}</p>
+    <div className="mt-4">
+      <div className="space-y-3">
+        {visibleComments.map((comment, index) => (
+          <div key={index} className="bg-gray-800 rounded-lg p-3 shadow-sm">
+            <div className="flex justify-between items-start">
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold text-white-500">@{comment.userName}</span>
+                <span className="text-xs text-gray-400">
+                  {formatDistanceToNow(new Date(comment.createdAt.seconds * 1000), { addSuffix: true })}
+                </span>
+              </div>
+              <button
+                onClick={() => onLike(postId, index)}
+                className={`flex items-center space-x-1 ${(comment.likes || []).includes(currentUserId) ? 'text-red-500' : 'text-gray-400'} hover:text-red-500 transition-colors duration-200`}
+              >
+                <Heart className={`w-4 h-4 ${(comment.likes || []).includes(currentUserId) ? 'fill-current' : ''}`} />
+                <span className="text-xs">{comment.likes?.length || 0}</span>
+              </button>
+            </div>
+            <p className="text-white text-sm mt-1">{comment.content}</p>
           </div>
         ))}
       </div>
-      <form onSubmit={handleSubmit} className="flex items-center space-x-2">
+      {comments.length > 2 && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-yellow-500 hover:text-yellow-400 transition-colors duration-200 flex items-center mt-2 text-sm"
+        >
+          {expanded ? (
+            <>
+              <ChevronUp className="w-4 h-4 mr-1" />
+              Hide comments
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-4 h-4 mr-1" />
+              See more comments
+            </>
+          )}
+        </button>
+      )}
+      <form onSubmit={handleSubmit} className="mt-4 flex items-center space-x-2">
         <input
           type="text"
           id={`comment-input-${postId}`}
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Add a comment..."
-          className="flex-grow p-2 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          className="flex-grow p-2 rounded-lg bg-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
         />
         <button
           type="submit"
