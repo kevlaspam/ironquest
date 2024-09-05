@@ -67,7 +67,12 @@ export default function ProfilePage() {
       try {
         const profileDoc = await getDoc(doc(db, 'userProfiles', user.uid))
         if (profileDoc.exists()) {
-          setProfile(profileDoc.data() as UserProfile)
+          const profileData = profileDoc.data() as UserProfile
+          setProfile({
+            ...defaultProfile,
+            ...profileData,
+            weightHistory: profileData.weightHistory || [],
+          })
         } else {
           // Create a new profile for the user
           await setDoc(doc(db, 'userProfiles', user.uid), defaultProfile)
@@ -154,7 +159,7 @@ export default function ProfilePage() {
 
       setProfile(prev => ({
         ...prev,
-        weightHistory: [...prev.weightHistory, weightEntry],
+        weightHistory: [...(prev.weightHistory || []), weightEntry],
       }))
 
       setNewWeight('')
@@ -235,7 +240,7 @@ export default function ProfilePage() {
           <div className="bg-gray-700 rounded-lg p-3">
             <p className="text-sm text-gray-400">Current Weight</p>
             <p className="text-lg font-semibold text-white">
-              {profile.weightHistory.length > 0
+              {profile.weightHistory && profile.weightHistory.length > 0
                 ? `${profile.weightHistory[profile.weightHistory.length - 1].weight} kg`
                 : 'Not set'}
             </p>
@@ -394,7 +399,7 @@ export default function ProfilePage() {
             Log Weight
           </button>
         </div>
-        {profile.weightHistory.length > 0 ? (
+        {profile.weightHistory && profile.weightHistory.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={profile.weightHistory}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
