@@ -69,7 +69,7 @@ export function CommentSection({ postId, comments, onComment, onLike, currentUse
           ) : (
             <>
               <ChevronDown className="w-4 h-4 mr-1" />
-              See more comments
+              See {comments.length - 2} more {comments.length - 2 === 1 ? 'comment' : 'comments'}
             </>
           )}
         </button>

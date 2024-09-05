@@ -18,7 +18,8 @@ import {
   arrayRemove, 
   getDoc, 
   where, 
-  setDoc 
+  setDoc,
+  FieldValue 
 } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import { MainMenu } from '../../components/MainMenu'
@@ -41,7 +42,7 @@ type Post = {
   content: string
   userId: string
   userName: string
-  createdAt: Timestamp | null
+  createdAt: Timestamp | FieldValue | null
   likes: string[]
   comments: { userId: string; userName: string; content: string; createdAt: Timestamp; likes: string[] }[]
   workoutId?: string
@@ -165,7 +166,6 @@ export default function Feed() {
         userProfileEmoji: userProfile?.profileEmoji || '💪'
       }
   
-      // Only add mood if it's selected
       if (selectedMood) {
         postData.mood = selectedMood
       }
@@ -249,7 +249,7 @@ export default function Feed() {
         userId: user.uid,
         userName: userProfile?.username || 'Anonymous',
         content: commentContent.trim(),
-        createdAt: serverTimestamp() as Timestamp,
+        createdAt: serverTimestamp() as FieldValue,
         likes: []
       }
       await updateDoc(postRef, {
@@ -376,7 +376,9 @@ export default function Feed() {
                 <div>
                   <h3 className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">@{post.userName}</h3>
                   <p className="text-sm text-gray-400">
-                    {post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : 'Just now'}
+                    {post.createdAt && 'toDate' in post.createdAt
+                      ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true })
+                      : 'Just now'}
                   </p>
                 </div>
               </div>
@@ -391,10 +393,11 @@ export default function Feed() {
             </div>
             <p className="text-white mb-4">{post.content}</p>
             {post.mood && (
-  <p className="text-yellow-500 mb-4">
-    {post.mood} {moodOptions.find(m => m.emoji === post.mood)?.text}
-  </p>
-)}            {post.workout && (
+              <p className="text-yellow-500 mb-4">
+                {post.mood} {moodOptions.find(m => m.emoji === post.mood)?.text}
+              </p>
+            )}
+            {post.workout && (
               <div className="mb-4">
                 <WorkoutCard workout={post.workout} />
               </div>
@@ -409,24 +412,17 @@ export default function Feed() {
                 <Heart className="w-5 h-5" />
                 <span>{post.likes?.length || 0}</span>
               </button>
-              <button
-                onClick={() => {
-                  const commentSection = document.getElementById(`comment-section-${post.id}`)
-                  if (commentSection) {
-                    commentSection.classList.toggle('hidden')
-                  }
-                }}
-                className="flex items-center space-x-1 text-gray-400 hover:text-yellow-500 transition-colors duration-200"
-              >
+              <div className="flex items-center space-x-1 text-gray-400">
                 <MessageCircle className="w-5 h-5" />
                 <span>{post.comments?.length || 0}</span>
-              </button>
+              </div>
             </div>
-            <div id={`comment-section-${post.id}`} className="hidden">
+            <div>
               <CommentSection
+                postId={post.id}
                 comments={post.comments || []}
-                onAddComment={(content) => handleAddComment(post.id, content)}
-                onLikeComment={(commentIndex) => handleLikeComment(post.id, commentIndex)}
+                onComment={(comment) => handleAddComment(post.id, comment)}
+                onLike={(commentIndex) => handleLikeComment(post.id, commentIndex)}
                 currentUserId={user.uid}
               />
             </div>
