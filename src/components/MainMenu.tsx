@@ -26,7 +26,7 @@ export function MainMenu() {
   }, [signOut, router])
 
   return (
-    <nav className="bg-gray-800 shadow-lg mb-8">
+    <nav className="bg-gray-800 shadow-lg mb-8 rounded-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/feed" className="flex items-center text-2xl font-extrabold">
@@ -41,27 +41,35 @@ export function MainMenu() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center"
+                className="text-gray-300 hover:bg-gray-700 hover:text-white p-2 rounded-md text-sm font-medium group relative"
               >
-                <item.icon className="h-5 w-5 mr-2" />
-                {item.label}
+                <item.icon className="h-6 w-6" />
+                <span className="absolute left-1/2 -translate-x-1/2 -bottom-10 bg-gray-700 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  {item.label}
+                </span>
               </Link>
             ))}
             {user ? (
               <button
                 onClick={handleSignOut}
-                className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center"
+                className="text-gray-300 hover:bg-gray-700 hover:text-white p-2 rounded-md text-sm font-medium group relative"
+                aria-label="Sign Out"
               >
-                <LogOut className="h-5 w-5 mr-2" />
-                Sign Out
+                <LogOut className="h-6 w-6" />
+                <span className="absolute left-1/2 -translate-x-1/2 -bottom-10 bg-gray-700 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  Sign Out
+                </span>
               </button>
             ) : (
               <button
                 onClick={signIn}
-                className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium flex items-center"
+                className="text-gray-300 hover:bg-gray-700 hover:text-white p-2 rounded-md text-sm font-medium group relative"
+                aria-label="Sign In"
               >
-                <LogIn className="h-5 w-5 mr-2" />
-                Sign In
+                <LogIn className="h-6 w-6" />
+                <span className="absolute left-1/2 -translate-x-1/2 -bottom-10 bg-gray-700 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  Sign In
+                </span>
               </button>
             )}
           </div>
