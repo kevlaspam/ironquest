@@ -109,7 +109,6 @@ export default function Feed() {
         const postData = document.data() as Post
         postData.id = document.id
         
-        // Ensure likes and comments are arrays
         postData.likes = postData.likes || []
         postData.comments = postData.comments || []
         
@@ -264,7 +263,7 @@ export default function Feed() {
 
   const handleLikeComment = async (postId: string, commentIndex: number) => {
     if (!user) return
-  
+
     try {
       const postRef = doc(db, 'posts', postId)
       const postDoc = await getDoc(postRef)
@@ -293,7 +292,7 @@ export default function Feed() {
       setToast({ message: 'Failed to update comment like. Please try again.', type: 'error' })
     }
   }
-  
+
   const handleWorkoutSelect = (workoutId: string) => {
     setSelectedWorkout(workoutId)
     const selectedWorkout = workouts.find(w => w.id === workoutId)
@@ -422,7 +421,7 @@ export default function Feed() {
                 postId={post.id}
                 comments={post.comments || []}
                 onComment={(comment) => handleAddComment(post.id, comment)}
-                onLike={(commentIndex) => handleLikeComment(post.id, commentIndex)}
+                onLike={handleLikeComment}
                 currentUserId={user.uid}
               />
             </div>
