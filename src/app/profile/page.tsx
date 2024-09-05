@@ -120,6 +120,7 @@ export default function ProfilePage() {
       setUsernameError(null)
 
       if (newUsername) {
+        // Check if the new username already exists
         const usernameQuery = query(collection(db, 'userProfiles'), where('username', '==', newUsername))
         const usernameSnapshot = await getDocs(usernameQuery)
         
