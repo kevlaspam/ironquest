@@ -20,40 +20,19 @@ type Workout = {
   exercises: Exercise[]
 }
 
-const exerciseOptions = [
-  // Chest
-  'Barbell Bench Press', 'Incline Dumbbell Press', 'Decline Bench Press', 'Chest Dips', 'Push-Ups',
-  'Cable Flyes', 'Pec Deck Machine', 'Landmine Press', 'Smith Machine Bench Press',
-  // Back
-  'Lat Pulldown', 'Seated Cable Row', 'Bent Over Barbell Row', 'T-Bar Row', 'Pull-Ups',
-  'Chin-Ups', 'Face Pulls', 'Straight Arm Pulldown', 'Single-Arm Dumbbell Row',
-  // Shoulders
-  'Overhead Barbell Press', 'Dumbbell Shoulder Press', 'Arnold Press', 'Lateral Raises',
-  'Front Raises', 'Reverse Flyes', 'Upright Rows', 'Shrugs',
-  // Biceps
-  'Barbell Curl', 'Dumbbell Curl', 'Hammer Curls', 'Preacher Curls', 'Concentration Curls',
-  'Cable Curls', 'Incline Dumbbell Curls', 'Spider Curls',
-  // Triceps
-  'Tricep Pushdowns', 'Overhead Tricep Extension', 'Skull Crushers', 'Close-Grip Bench Press',
-  'Diamond Push-Ups', 'Tricep Dips', 'Cable Tricep Kickbacks',
-  // Legs
-  'Barbell Back Squat', 'Front Squat', 'Leg Press', 'Romanian Deadlift', 'Lunges',
-  'Leg Extensions', 'Leg Curls', 'Calf Raises', 'Hip Thrusts', 'Bulgarian Split Squats',
-  // Abs
-  'Crunches', 'Planks', 'Russian Twists', 'Leg Raises', 'Ab Wheel Rollouts',
-  'Hanging Leg Raises', 'Cable Crunches', 'Mountain Climbers',
-  // Compound Movements
-  'Deadlifts', 'Power Cleans', 'Barbell Rows', 'Dumbbell Thrusters',
-  // Machines
-  'Chest Press Machine', 'Shoulder Press Machine', 'Leg Press Machine', 'Seated Leg Curl Machine',
-  'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Tricep Pushdown Machine',
-  // Bodyweight
-  'Push-Ups', 'Pull-Ups', 'Dips', 'Squats', 'Lunges', 'Burpees', 'Mountain Climbers',
-  'Plank', 'Side Plank', 'Glute Bridges', 'Step-Ups',
-  // Cable Exercises
-  'Cable Crossovers', 'Cable Woodchoppers', 'Cable Crunches', 'Cable Lateral Raises',
-  'Cable Face Pulls', 'Cable Tricep Pushdowns', 'Cable Bicep Curls'
-]
+const exerciseOptions = {
+  Chest: ['Barbell Bench Press', 'Incline Dumbbell Press', 'Decline Bench Press', 'Chest Dips', 'Push-Ups', 'Cable Flyes', 'Pec Deck Machine', 'Landmine Press', 'Smith Machine Bench Press'],
+  Back: ['Lat Pulldown', 'Seated Cable Row', 'Bent Over Barbell Row', 'T-Bar Row', 'Pull-Ups', 'Chin-Ups', 'Face Pulls', 'Straight Arm Pulldown', 'Single-Arm Dumbbell Row'],
+  Shoulders: ['Overhead Barbell Press', 'Dumbbell Shoulder Press', 'Arnold Press', 'Lateral Raises', 'Front Raises', 'Reverse Flyes', 'Upright Rows', 'Shrugs'],
+  Biceps: ['Barbell Curl', 'Dumbbell Curl', 'Hammer Curls', 'Preacher Curls', 'Concentration Curls', 'Cable Curls', 'Incline Dumbbell Curls', 'Spider Curls'],
+  Triceps: ['Tricep Pushdowns', 'Overhead Tricep Extension', 'Skull Crushers', 'Close-Grip Bench Press', 'Diamond Push-Ups', 'Tricep Dips', 'Cable Tricep Kickbacks'],
+  Legs: ['Barbell Back Squat', 'Front Squat', 'Leg Press', 'Romanian Deadlift', 'Lunges', 'Leg Extensions', 'Leg Curls', 'Calf Raises', 'Hip Thrusts', 'Bulgarian Split Squats'],
+  Abs: ['Crunches', 'Planks', 'Russian Twists', 'Leg Raises', 'Ab Wheel Rollouts', 'Hanging Leg Raises', 'Cable Crunches', 'Mountain Climbers'],
+  Compound: ['Deadlifts', 'Power Cleans', 'Barbell Rows', 'Dumbbell Thrusters'],
+  Machines: ['Chest Press Machine', 'Shoulder Press Machine', 'Leg Press Machine', 'Seated Leg Curl Machine', 'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Tricep Pushdown Machine'],
+  Bodyweight: ['Push-Ups', 'Pull-Ups', 'Dips', 'Squats', 'Lunges', 'Burpees', 'Mountain Climbers', 'Plank', 'Side Plank', 'Glute Bridges', 'Step-Ups'],
+  Cable: ['Cable Crossovers', 'Cable Woodchoppers', 'Cable Crunches', 'Cable Lateral Raises', 'Cable Face Pulls', 'Cable Tricep Pushdowns', 'Cable Bicep Curls']
+}
 
 const preFilledWorkouts = {
   chestTriceps: {
@@ -148,6 +127,7 @@ export default function LogWorkout() {
   const [newWorkoutName, setNewWorkoutName] = useState('')
   const [restDuration, setRestDuration] = useState(60)
   const [currentWorkoutName, setCurrentWorkoutName] = useState('')
+  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) {
@@ -212,10 +192,11 @@ export default function LogWorkout() {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
   }
 
-  const handleExerciseChange = (index: number, value: string) => {
+  const handleExerciseChange = (exerciseIndex: number, bodyPart: string, exerciseName: string) => {
     const newExercises = [...exercises]
-    newExercises[index].name = value
+    newExercises[exerciseIndex].name = exerciseName
     setExercises(newExercises)
+    setSelectedBodyPart(null)
   }
 
   const handleSetChange = (exerciseIndex: number, setIndex: number, field: 'reps' | 'weight', value: number) => {
@@ -485,19 +466,37 @@ export default function LogWorkout() {
             {exercises.map((exercise, exerciseIndex) => (
               <div key={exerciseIndex} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
                 <div className="flex justify-between items-center mb-4">
-                  <select
-                    value={exercise.name}
-                    onChange={(e) => handleExerciseChange(exerciseIndex, e.target.value)}
-                    className="bg-gray-700 text-white rounded-lg p-2 w-2/3"
-                    required
-                  >
-                    <option value="">Select an exercise</option>
-                    {exerciseOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative w-2/3">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedBodyPart(selectedBodyPart === exerciseIndex.toString() ? null : exerciseIndex.toString())}
+                      className="bg-gray-700 text-white rounded-lg p-2 w-full text-left flex justify-between items-center"
+                    >
+                      {exercise.name || "Select an exercise"}
+                      <ChevronDown size={20} />
+                    </button>
+                    {selectedBodyPart === exerciseIndex.toString() && (
+                      <div className="absolute z-10 w-full mt-1 bg-gray-800 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        {Object.entries(exerciseOptions).map(([bodyPart, exercises]) => (
+                          <div key={bodyPart}>
+                            <div className="sticky top-0 bg-gray-900 px-4 py-2 font-semibold text-yellow-500">
+                              {bodyPart}
+                            </div>
+                            {exercises.map((exerciseName) => (
+                              <button
+                                key={exerciseName}
+                                type="button"
+                                onClick={() => handleExerciseChange(exerciseIndex, bodyPart, exerciseName)}
+                                className="block w-full text-left px-4 py-2 text-white hover:bg-gray-700"
+                              >
+                                {exerciseName}
+                              </button>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => removeExercise(exerciseIndex)}
@@ -506,69 +505,87 @@ export default function LogWorkout() {
                     <X size={20} />
                   </button>
                 </div>
-                {exercise.sets.map((set, setIndex) => (
-                  <div key={setIndex} className="flex items-center space-x-2 mb-2">
-                    <input
-                      type="number"
-                      value={set.reps}
-                      onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'reps', parseInt(e.target.value))}
-                      placeholder="Reps"
-                      className="bg-gray-700 text-white rounded-lg p-2 w-1/4"
-                      required
-                    />
-                    <input
-                      type="number"
-                      value={set.weight}
-                      onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', parseInt(e.target.value))}
-                      placeholder="Weight"
-                      className="bg-gray-700 text-white rounded-lg p-2 w-1/4"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => toggleSetCompletion(exerciseIndex, setIndex)}
-                      className={`p-2 rounded-full ${
-                        set.completed ? 'bg-green-500' : 'bg-gray-500'
-                      }`}
-                    >
-                      <Check size={20} className="text-white" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeSet(exerciseIndex, setIndex)}
-                      className="bg-red-500 text-white p-2 rounded-full"
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
-                ))}
+                <div className="space-y-4">
+                  {exercise.sets.map((set, setIndex) => (
+                    <div key={setIndex} className="flex items-center space-x-2">
+                      <span className="text-white">Set {setIndex + 1}</span>
+                      <input
+                        type="number"
+                        value={set.reps}
+                        onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'reps', parseInt(e.target.value))}
+                        className="bg-gray-700 text-white rounded-lg p-2 w-20"
+                        placeholder="Reps"
+                      />
+                      <input
+                        type="number"
+                        value={set.weight}
+                        onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', parseInt(e.target.value))}
+                        className="bg-gray-700 text-white rounded-lg p-2 w-20"
+                        placeholder="Weight"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => toggleSetCompletion(exerciseIndex, setIndex)}
+                        className={`p-2 rounded-full ${set.completed ? 'bg-green-500' : 'bg-gray-700'}`}
+                      >
+                        <Check size={20} className="text-white" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeSet(exerciseIndex, setIndex)}
+                        className="bg-red-500 text-white p-2 rounded-full"
+                      >
+                        <X size={20} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
                 <button
                   type="button"
                   onClick={() => addSet(exerciseIndex)}
-                  className="bg-blue-500 text-white p-2 rounded-full mt-2"
+                  className="mt-4 bg-yellow-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors duration-200"
                 >
-                  <Plus size={20} />
+                  Add Set
                 </button>
               </div>
             ))}
-<div className="flex justify-center space-x-4 mt-8">
+            <div className="flex justify-between">
               <button
                 type="button"
                 onClick={addExercise}
-                className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-6 py-3 rounded-lg flex items-center shadow-lg hover:shadow-xl transition-shadow duration-300 border-2 border-yellow-400"
+                className="bg-yellow-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors duration-200 flex items-center"
               >
                 <Plus size={20} className="mr-2" />
                 Add Exercise
               </button>
               <button
                 type="submit"
-                className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg flex items-center shadow-lg hover:shadow-xl transition-shadow duration-300 border-2 border-green-400"
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-400 transition-colors duration-200 flex items-center"
               >
                 <Save size={20} className="mr-2" />
                 Log Workout
               </button>
             </div>
           </form>
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
+            <h2 className="text-xl font-semibold text-white mb-4">Save Workout as Template</h2>
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                value={newWorkoutName}
+                onChange={(e) => setNewWorkoutName(e.target.value)}
+                placeholder="Enter workout name"
+                className="bg-gray-700 text-white rounded-lg p-2 flex-grow"
+              />
+              <button
+                onClick={saveWorkout}
+                className="bg-yellow-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors duration-200 flex items-center"
+              >
+                <Save size={20} className="mr-2" />
+                Save
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
