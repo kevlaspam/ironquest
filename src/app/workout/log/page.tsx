@@ -1,17 +1,23 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../../components/AuthProvider'
 import { db } from '../../../lib/firebase'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, addDoc, serverTimestamp, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore'
 import { MainMenu } from '../../../components/MainMenu'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import { Clipboard, ChevronRight, X, Plus, Save, Sword, Play, Pause, RotateCcw } from 'lucide-react'
+import { Clipboard, ChevronRight, X, Plus, Save, Dumbbell, Play, Pause, RotateCcw, Trash2 } from 'lucide-react'
 
 type Exercise = {
   name: string
   sets: { reps: number; weight: number }[]
+}
+
+type Workout = {
+  id?: string
+  name: string
+  exercises: Exercise[]
 }
 
 const exerciseOptions = [
@@ -101,8 +107,14 @@ export default function LogWorkout() {
   const [workoutStarted, setWorkoutStarted] = useState(false)
   const [restTimer, setRestTimer] = useState(0)
   const [isRestTimerRunning, setIsRestTimerRunning] = useState(false)
-  const [activeExerciseIndex, setActiveExerciseIndex] = useState(0)
-  const [activeSetIndex, setActiveSetIndex] = useState(0)
+  const [userWorkouts, setUserWorkouts] = useState<Workout[]>([])
+  const [newWorkoutName, setNewWorkoutName] = useState('')
+
+  useEffect(() => {
+    if (user) {
+      fetchUserWorkouts()
+    }
+  }, [user])
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -135,11 +147,23 @@ export default function LogWorkout() {
     return () => clearInterval(interval)
   }, [isRestTimerRunning])
 
-  const startWorkout = (workoutType?: keyof typeof preFilledWorkouts) => {
+  const fetchUserWorkouts = async () => {
+    if (!user) return
+
+    const q = query(collection(db, 'userWorkouts'), where('userId', '==', user.uid))
+    const querySnapshot = await getDocs(q)
+    const workouts: Workout[] = []
+    querySnapshot.forEach((doc) => {
+      workouts.push({ id: doc.id, ...doc.data() } as Workout)
+    })
+    setUserWorkouts(workouts)
+  }
+
+  const startWorkout = (workout?: Workout) => {
     setWorkoutStarted(true)
     setIsTimerRunning(true)
-    if (workoutType) {
-      setExercises(preFilledWorkouts[workoutType].exercises)
+    if (workout) {
+      setExercises(workout.exercises)
     }
   }
 
@@ -184,7 +208,7 @@ export default function LogWorkout() {
   }
 
   const startRestTimer = () => {
-    setRestTimer(60) // Set to 60 seconds, adjust as needed
+    setRestTimer(60)
     setIsRestTimerRunning(true)
   }
 
@@ -214,6 +238,48 @@ export default function LogWorkout() {
     }
   }
 
+  const saveWorkout = async () => {
+    if (!user) {
+      toast.error('You must be logged in to save a workout')
+      return
+    }
+
+    if (!newWorkoutName) {
+      toast.error('Please enter a name for your workout')
+      return
+    }
+
+    try {
+      await addDoc(collection(db, 'userWorkouts'), {
+        userId: user.uid,
+        name: newWorkoutName,
+        exercises,
+      })
+      toast.success('Workout saved successfully!')
+      setNewWorkoutName('')
+      fetchUserWorkouts()
+    } catch (error) {
+      console.error('Error saving workout: ', error)
+      toast.error('Failed to save workout. Please try again.')
+    }
+  }
+
+  const deleteWorkout = async (workoutId: string) => {
+    if (!user) {
+      toast.error('You must be logged in to delete a workout')
+      return
+    }
+
+    try {
+      await deleteDoc(doc(db, 'userWorkouts', workoutId))
+      toast.success('Workout deleted successfully!')
+      fetchUserWorkouts()
+    } catch (error) {
+      console.error('Error deleting workout: ', error)
+      toast.error('Failed to delete workout. Please try again.')
+    }
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <MainMenu />
@@ -221,54 +287,100 @@ export default function LogWorkout() {
       <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float">Choose Your Workout 🏆</h1>
       
       {!workoutStarted ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <div 
-            className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer flex flex-col justify-between p-6 border-4 border-yellow-500"
-            onClick={() => startWorkout()}
-          >
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-white">Blank Quest</h2>
-                <Clipboard className="w-6 h-6 text-yellow-500" />
-              </div>
-              <p className="text-gray-300 text-sm mb-4">Forge your own path and create a custom quest.</p>
-            </div>
-            <div className="flex justify-end">
-              <ChevronRight className="w-5 h-5 text-yellow-500" />
-            </div>
-          </div>
-          {Object.entries(preFilledWorkouts).map(([key, workout]) => (
+        <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <div 
-              key={key} 
               className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer flex flex-col justify-between p-6 border-4 border-yellow-500"
-              onClick={() => startWorkout(key as keyof typeof preFilledWorkouts)}
+              onClick={() => startWorkout()}
             >
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-white truncate" title={workout.name}>{workout.name}</h2>
-                  <span className="text-2xl">{workout.icon}</span>
+                  <h2 className="text-xl font-semibold text-white">Blank Workout</h2>
+                  <Clipboard className="w-6 h-6 text-yellow-500" />
                 </div>
-                <ul className="text-gray-300 text-sm mb-4 list-disc list-inside">
-                  {workout.exercises.slice(0, 3).map((exercise, index) => (
-                    <li key={index} className="truncate">{exercise.name}</li>
-                  ))}
-                  {workout.exercises.length > 3 && (
-                    <li className="text-gray-400">+{workout.exercises.length - 3} more</li>
-                  )}
-                </ul>
+                <p className="text-gray-300 text-sm mb-4">Create your own custom workout from scratch.</p>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-400">{workout.exercises.length} exercises</span>
+              <div className="flex justify-end">
                 <ChevronRight className="w-5 h-5 text-yellow-500" />
               </div>
             </div>
-          ))}
+            {Object.entries(preFilledWorkouts).map(([key, workout]) => (
+              <div 
+                key={key} 
+                className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer flex flex-col justify-between p-6 border-4 border-yellow-500"
+                onClick={() => startWorkout({ name: workout.name, exercises: workout.exercises })}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-white truncate" title={workout.name}>{workout.name}</h2>
+                    <span className="text-2xl">{workout.icon}</span>
+                  </div>
+                  <ul className="text-gray-300 text-sm mb-4 list-disc list-inside">
+                    {workout.exercises.slice(0, 3).map((exercise, index) => (
+                      <li key={index} className="truncate">{exercise.name}</li>
+                    ))}
+                    {workout.exercises.length > 3 && (
+                      <li className="text-gray-400">+{workout.exercises.length - 3} more</li>
+                    )}
+                  </ul>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-400">{workout.exercises.length} exercises</span>
+                  <ChevronRight className="w-5 h-5 text-yellow-500" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <h2 className="text-2xl font-bold mb-4 text-white">Your Saved Workouts</h2>
+          {userWorkouts.length === 0 ? (
+            <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500 text-center">
+              <p className="text-white mb-4">You haven't saved any workouts yet.</p>
+              <p className="text-gray-300">Start a blank workout to create your own template!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {userWorkouts.map((workout) => (
+                <div 
+                  key={workout.id} 
+                  className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between p-6 border-4 border-yellow-500 cursor-pointer"
+                  onClick={() => startWorkout(workout)}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xl font-semibold text-white truncate" title={workout.name}>{workout.name}</h2>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteWorkout(workout.id!);
+                        }} 
+                        className="text-red-500 hover:text-red-600"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
+                    <ul className="text-gray-300 text-sm mb-4 list-disc list-inside">
+                      {workout.exercises.slice(0, 3).map((exercise, index) => (
+                        <li key={index} className="truncate">{exercise.name}</li>
+                      ))}
+                      {workout.exercises.length > 3 && (
+                        <li className="text-gray-400">+{workout.exercises.length - 3} more</li>
+                      )}
+                    </ul>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-400">{workout.exercises.length} exercises</span>
+                    <ChevronRight className="w-5 h-5 text-yellow-500" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ) : (
         <div className="space-y-6">
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-white">Quest Timer</h2>
+              <h2 className="text-xl font-semibold text-white">Workout Timer</h2>
               <p className="text-3xl font-bold text-yellow-500">{formatTime(timer)}</p>
             </div>
             <div className="flex justify-between items-center">
@@ -381,10 +493,28 @@ export default function LogWorkout() {
                 type="submit"
                 className="bg-yellow-500 text-gray-900 px-6 py-2 rounded-full hover:bg-yellow-400 transition-colors duration-200 flex items-center"
               >
-                <Sword size={16} className="mr-2" /> Complete Quest
+                <Dumbbell size={16} className="mr-2" /> Complete Workout
               </button>
             </div>
           </form>
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
+            <h3 className="text-xl font-semibold text-white mb-4">Save This Workout</h3>
+            <div className="flex items-center space-x-4">
+              <input
+                type="text"
+                value={newWorkoutName}
+                onChange={(e) => setNewWorkoutName(e.target.value)}
+                placeholder="Enter workout name"
+                className="bg-gray-700 text-white rounded-lg p-2 flex-grow"
+              />
+              <button
+                onClick={saveWorkout}
+                className="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600 transition-colors duration-200 flex items-center"
+              >
+                <Save size={16} className="mr-2" /> Save Workout
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
