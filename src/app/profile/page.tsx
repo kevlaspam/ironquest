@@ -7,7 +7,7 @@ import { db } from '../../lib/firebase'
 import { MainMenu } from '../../components/MainMenu'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import html2canvas from 'html2canvas'
-import { Dumbbell, Scale, Target, Activity, Share2, User, Sword, Loader2, Percent } from 'lucide-react'
+import { Dumbbell, Scale, Target, Activity, Share2, User, Loader2, Percent } from 'lucide-react'
 
 type WeightEntry = {
   date: string
@@ -36,7 +36,7 @@ const goalIcons: { [key: string]: JSX.Element } = {
   weight_loss: <Scale className="w-6 h-6 text-yellow-500" />,
   muscle_gain: <Dumbbell className="w-6 h-6 text-yellow-500" />,
   endurance: <Activity className="w-6 h-6 text-yellow-500" />,
-  strength: <Sword className="w-6 h-6 text-yellow-500" />,
+  strength: <Dumbbell className="w-6 h-6 text-yellow-500" />,
   flexibility: <Activity className="w-6 h-6 text-yellow-500" />,
   overall_health: <Target className="w-6 h-6 text-yellow-500" />,
 }
@@ -247,8 +247,8 @@ export default function ProfilePage() {
       <div ref={profileCardRef} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
-            <div className="bg-yellow-500 rounded-full p-4">
-              <User className="w-8 h-8 text-gray-900" />
+            <div className="bg-yellow-500 rounded-full p-3">
+              <User className="w-6 h-6 text-gray-900" />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-white">{profile.username || profile.name || 'New Hero'}</h2>
@@ -257,27 +257,27 @@ export default function ProfilePage() {
           </div>
           <button
             onClick={handleSaveProfileImage}
-            className="bg-yellow-500 text-gray-900 px-4 py-2 rounded-full hover:bg-yellow-400 transition-colors duration-200 flex items-center space-x-2"
+            className="bg-yellow-500 text-gray-900 px-3 py-1 rounded-full hover:bg-yellow-400 transition-colors duration-200 flex items-center space-x-1 text-sm"
           >
-            <Share2 className="w-5 h-5" />
-            <span>Share Quest Log</span>
+            <Share2 className="w-4 h-4" />
+            <span>Share</span>
           </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-gray-700 rounded-lg p-3">
-            <p className="text-sm text-gray-400">Height</p>
+            <p className="text-xs text-gray-400">Height</p>
             <p className="text-lg font-semibold text-white">{profile.height || 0} cm</p>
           </div>
           <div className="bg-gray-700 rounded-lg p-3">
-            <p className="text-sm text-gray-400">Quests Completed</p>
+            <p className="text-xs text-gray-400">Workouts Completed</p>
             <p className="text-lg font-semibold text-white">{totalWorkouts}</p>
           </div>
           <div className="bg-gray-700 rounded-lg p-3">
-            <p className="text-sm text-gray-400">Total Weight Lifted</p>
+            <p className="text-xs text-gray-400">Total Weight Lifted</p>
             <p className="text-lg font-semibold text-white">{totalWeightLifted.toLocaleString()} kg</p>
           </div>
           <div className="bg-gray-700 rounded-lg p-3">
-            <p className="text-sm text-gray-400">Current Weight</p>
+            <p className="text-xs text-gray-400">Current Weight</p>
             <p className="text-lg font-semibold text-white">
               {profile.weightHistory && profile.weightHistory.length > 0
                 ? `${profile.weightHistory[profile.weightHistory.length - 1].weight} kg`
@@ -287,14 +287,14 @@ export default function ProfilePage() {
         </div>
         <div className="bg-gray-700 rounded-lg p-4 flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-400">Quest Objective</p>
+            <p className="text-xs text-gray-400">Fitness Goal</p>
             <p className="text-lg font-semibold text-white flex items-center">
-              {goalIcons[profile.fitnessGoal] || <Target className="w-6 h-6 text-yellow-500 mr-2" />}
+              {goalIcons[profile.fitnessGoal] || <Target className="w-5 h-5 text-yellow-500 mr-2" />}
               <span className="ml-2">{(profile.fitnessGoal || '').replace('_', ' ') || 'Not set'}</span>
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-400">Activity Level</p>
+            <p className="text-xs text-gray-400">Activity Level</p>
             <p className="text-lg font-semibold text-white">{profile.activityLevel || 'Not set'}</p>
           </div>
         </div>
@@ -302,7 +302,7 @@ export default function ProfilePage() {
 
       {error && <div className="text-red-500 text-center mb-4" role="alert">{error}</div>}
       <form onSubmit={handleSubmit} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
-        <h2 className="text-2xl font-bold mb-4 text-white">Edit Your Quest Log</h2>
+        <h2 className="text-2xl font-bold mb-4 text-white">Edit Your Workout Log</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="name" className="block text-gray-300 font-bold mb-2">Hero Name (Your real name)</label>
@@ -380,7 +380,7 @@ export default function ProfilePage() {
             </select>
           </div>
           <div>
-            <label htmlFor="fitnessGoal" className="block text-gray-300 font-bold mb-2">Quest Objective</label>
+            <label htmlFor="fitnessGoal" className="block text-gray-300 font-bold mb-2">Fitness Goal</label>
             <select
               id="fitnessGoal"
               name="fitnessGoal"
@@ -409,11 +409,11 @@ export default function ProfilePage() {
               required
             >
               <option value="">Select activity level</option>
-              <option value="sedentary">Novice (little to no questing)</option>
-              <option value="light">Apprentice (light questing 1-3 days/week)</option>
-              <option value="moderate">Adept (moderate questing 3-5 days/week)</option>
-              <option value="very">Expert (intense questing 6-7 days/week)</option>
-              <option value="extra">Legendary (very intense questing & physical job)</option>
+              <option value="sedentary">Novice (little to no exercise)</option>
+              <option value="light">Apprentice (light exercise 1-3 days/week)</option>
+              <option value="moderate">Adept (moderate exercise 3-5 days/week)</option>
+              <option value="very">Expert (intense exercise 6-7 days/week)</option>
+              <option value="extra">Legendary (very intense exercise & physical job)</option>
             </select>
           </div>
         </div>
@@ -421,7 +421,7 @@ export default function ProfilePage() {
           type="submit"
           className="w-full bg-yellow-500 text-gray-900 py-2 px-4 rounded-full hover:bg-yellow-400 focus:outline-none focus:ring focus:border-yellow-300 mt-4 transition-colors duration-200 font-bold"
         >
-          Update Quest Log
+          Update Workout Log
         </button>
       </form>
 
