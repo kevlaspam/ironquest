@@ -16,6 +16,7 @@ type WeightEntry = {
 
 type UserProfile = {
   name: string
+  username: string
   age: number
   height: number
   gender: string
@@ -37,6 +38,7 @@ export default function ProfilePage() {
   const { user } = useAuth()
   const [profile, setProfile] = useState<UserProfile>({
     name: '',
+    username: '',
     age: 0,
     height: 0,
     gender: '',
@@ -50,6 +52,8 @@ export default function ProfilePage() {
   const [totalWorkouts, setTotalWorkouts] = useState(0)
   const [totalWeightLifted, setTotalWeightLifted] = useState(0)
   const profileCardRef = useRef<HTMLDivElement>(null)
+  const [usernameError, setUsernameError] = useState<string | null>(null)
+  const [newUsername, setNewUsername] = useState('')
 
   useEffect(() => {
     const fetchProfileAndStats = async () => {
@@ -101,9 +105,29 @@ export default function ProfilePage() {
     if (!user) return
 
     try {
-      await setDoc(doc(db, 'userProfiles', user.uid), profile)
-      alert('Profile updated successfully!')
       setError(null)
+      setUsernameError(null)
+
+      // Check if the new username is already taken
+      if (newUsername) {
+        const usernameQuery = query(collection(db, 'userProfiles'), where('username', '==', newUsername))
+        const usernameSnapshot = await getDocs(usernameQuery)
+        
+        if (!usernameSnapshot.empty && usernameSnapshot.docs[0].id !== user.uid) {
+          setUsernameError('This username is already taken. Please choose another.')
+          return
+        }
+      }
+
+      const updatedProfile = {
+        ...profile,
+        username: newUsername || profile.username,
+      }
+
+      await setDoc(doc(db, 'userProfiles', user.uid), updatedProfile)
+      setProfile(updatedProfile)
+      setNewUsername('')
+      alert('Profile updated successfully!')
     } catch (err) {
       console.error('Error updating profile:', err)
       setError('Failed to update profile. Please try again.')
@@ -144,7 +168,7 @@ export default function ProfilePage() {
         const image = canvas.toDataURL('image/png')
         const link = document.createElement('a')
         link.href = image
-        link.download = 'ironquest-profile.png'
+        link.download = 'gymgame-profile.png'
         link.click()
       } catch (err) {
         console.error('Error saving profile image:', err)
@@ -175,7 +199,7 @@ export default function ProfilePage() {
                 <User className="w-8 h-8 text-yellow-500" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white">{profile.name}</h2>
+                <h2 className="text-2xl font-bold text-white">{profile.username || profile.name}</h2>
                 <p className="text-yellow-500">Level: {Math.floor(totalWorkouts / 10) + 1}</p>
               </div>
             </div>
@@ -193,11 +217,11 @@ export default function ProfilePage() {
               <p className="text-lg font-semibold text-white">{profile.height} cm</p>
             </div>
             <div className="bg-gray-700 rounded-lg p-3">
-              <p className="text-sm text-gray-400">Quests Completed</p>
+              <p className="text-sm text-gray-400">Workouts Completed</p>
               <p className="text-lg font-semibold text-white">{totalWorkouts}</p>
             </div>
             <div className="bg-gray-700 rounded-lg p-3">
-              <p className="text-sm text-gray-400">Total Weight Conquered</p>
+              <p className="text-sm text-gray-400">Total Weight Lifted</p>
               <p className="text-lg font-semibold text-white">{totalWeightLifted.toLocaleString()} kg</p>
             </div>
             <div className="bg-gray-700 rounded-lg p-3">
@@ -226,7 +250,7 @@ export default function ProfilePage() {
         <h2 className="text-2xl font-bold mb-4 text-white">Edit Your Quest Log</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="name" className="block text-gray-300 font-bold mb-2">Hero Name</label>
+            <label htmlFor="name" className="block text-gray-300 font-bold mb-2">Hero Name (Your real name)</label>
             <input
               type="text"
               id="name"
@@ -236,6 +260,29 @@ export default function ProfilePage() {
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-yellow-300 bg-gray-700 text-white"
               required
             />
+          </div>
+          <div>
+            <label htmlFor="username" className="block text-gray-300 font-bold mb-2">Current Username</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              value={profile.username}
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-yellow-300 bg-gray-700 text-white"
+              disabled
+            />
+          </div>
+          <div>
+            <label htmlFor="newUsername" className="block text-gray-300 font-bold mb-2">New Username (Your unique GymGa.me ID)</label>
+            <input
+              type="text"
+              id="newUsername"
+              name="newUsername"
+              value={newUsername}
+              onChange={(e) => setNewUsername(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-yellow-300 bg-gray-700 text-white"
+            />
+            {usernameError && <p className="text-red-500 text-sm mt-1">{usernameError}</p>}
           </div>
           <div>
             <label htmlFor="age" className="block text-gray-300 font-bold mb-2">Age</label>

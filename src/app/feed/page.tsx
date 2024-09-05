@@ -46,6 +46,11 @@ type Post = {
   workout?: Workout
 }
 
+type UserProfile = {
+  username: string
+  name: string
+}
+
 export default function Feed() {
   const { user } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
@@ -55,15 +60,41 @@ export default function Feed() {
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [selectedWorkout, setSelectedWorkout] = useState<string | null>(null)
   const [previewWorkout, setPreviewWorkout] = useState<Workout | null>(null)
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
 
   useEffect(() => {
     if (!db || !user) return
+
+    const fetchUserProfile = async () => {
+      const profileDoc = await getDoc(doc(db, 'userProfiles', user.uid))
+      if (profileDoc.exists()) {
+        setUserProfile(profileDoc.data() as UserProfile)
+      } else {
+        // If profile doesn't exist, create a default one
+        const defaultProfile: UserProfile = {
+          username: user.displayName?.replace(/\s+/g, '').toLowerCase() || 'user',
+          name: user.displayName || 'Anonymous'
+        }
+        await setDoc(doc(db, 'userProfiles', user.uid), defaultProfile)
+        setUserProfile(defaultProfile)
+      }
+    }
+
+    fetchUserProfile()
 
     const postsQuery = query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(50))
     const unsubscribePosts = onSnapshot(postsQuery, async (querySnapshot) => {
       const postsData = await Promise.all(querySnapshot.docs.map(async (document) => {
         const postData = document.data() as Post
         postData.id = document.id
+        
+        // Fetch the user's profile to get the username
+        const userProfileDoc = await getDoc(doc(db, 'userProfiles', postData.userId))
+        if (userProfileDoc.exists()) {
+          const userProfileData = userProfileDoc.data() as UserProfile
+          postData.userName = userProfileData.username
+        }
+        
         if (postData.workoutId) {
           const workoutDoc = await getDoc(doc(db, 'posts', document.id, 'workouts', postData.workoutId))
           if (workoutDoc.exists()) {
@@ -106,13 +137,13 @@ export default function Feed() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user || !newPost.trim()) return
+    if (!user || !newPost.trim() || !userProfile) return
 
     try {
       const postRef = await addDoc(collection(db, 'posts'), {
         content: newPost.trim(),
         userId: user.uid,
-        userName: user.displayName || 'Anonymous',
+        userName: userProfile.username,
         createdAt: serverTimestamp(),
         likes: [],
         comments: []
@@ -169,13 +200,13 @@ export default function Feed() {
   }
 
   const handleComment = async (postId: string, comment: string) => {
-    if (!user || !comment.trim()) return
+    if (!user || !comment.trim() || !userProfile) return
 
     const postRef = doc(db, 'posts', postId)
     await updateDoc(postRef, {
       comments: arrayUnion({
         userId: user.uid,
-        userName: user.displayName || 'Anonymous',
+        userName: userProfile.username,
         content: comment.trim(),
         createdAt: Timestamp.now()
       })
@@ -247,7 +278,7 @@ export default function Feed() {
             <div key={post.id} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-2 border-yellow-500">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-white">{post.userName}</h3>
+                  <h3 className="text-lg font-semibold text-white">@{post.userName}</h3>
                   <p className="text-sm text-gray-400">
                     {formatDate(post.createdAt)}
                   </p>
