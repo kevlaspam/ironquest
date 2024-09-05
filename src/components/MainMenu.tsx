@@ -13,7 +13,7 @@ export function MainMenu() {
 
   const menuItems = [
     { href: '/feed', label: 'Feed', icon: Home },
-    { href: '/workout/log', label: 'New Quest', icon: PlusSquare },
+    { href: '/workout/log', label: 'Workout', icon: PlusSquare },
     { href: '/history', label: 'History', icon: History },
     { href: '/stats', label: 'Stats', icon: BarChart2 },
     { href: '/achievements', label: 'Achievements', icon: Award },
