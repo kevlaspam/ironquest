@@ -373,7 +373,7 @@ export default function Feed() {
                   {post.userProfileEmoji}
                 </div>
                 <div>
-                  <h3 className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">@{post.userName}</h3>
+                  <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">@{post.userName}</h3>
                   <p className="text-sm text-gray-400">
                     {post.createdAt && 'toDate' in post.createdAt
                       ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true })
