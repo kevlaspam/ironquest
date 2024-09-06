@@ -345,7 +345,7 @@ export default function Feed() {
             <option value="">Select mood</option>
             {moodOptions.map((mood) => (
               <option key={mood.text} value={mood.emoji}>
-                {mood.emoji} {mood.text}
+                {mood.text} {mood.emoji}
               </option>
             ))}
           </select>
@@ -392,9 +392,9 @@ export default function Feed() {
             </div>
             <p className="text-white mb-4">{post.content}</p>
             {post.mood && (
-              <p className="text-yellow-500 mb-4">
+              <span className="inline-block bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold mr-2 mb-2">
                 {post.mood} {moodOptions.find(m => m.emoji === post.mood)?.text}
-              </p>
+              </span>
             )}
             {post.workout && (
               <div className="mb-4">
