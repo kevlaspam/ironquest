@@ -24,11 +24,14 @@ export default function WeightSelector({ value, onChange }: WeightSelectorProps)
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [ref])
+  }, [isOpen])
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = parseFloat(e.target.value)
@@ -119,13 +122,13 @@ export default function WeightSelector({ value, onChange }: WeightSelectorProps)
               <input
                 type="range"
                 min={0}
-                max={200}
+                max={500}
                 step={2.5}
                 value={sliderValue}
                 onChange={handleSliderChange}
                 className="w-full appearance-none bg-gray-700 h-2 rounded-full outline-none"
                 style={{
-                  background: `linear-gradient(to right, #EAB308 0%, #EAB308 ${(sliderValue / 200) * 100}%, #4B5563 ${(sliderValue / 200) * 100}%, #4B5563 100%)`,
+                  background: `linear-gradient(to right, #EAB308 0%, #EAB308 ${(sliderValue / 500) * 100}%, #4B5563 ${(sliderValue / 500) * 100}%, #4B5563 100%)`,
                 }}
               />
               <style jsx>{`
@@ -148,8 +151,8 @@ export default function WeightSelector({ value, onChange }: WeightSelectorProps)
               `}</style>
               <div className="flex justify-between text-xs text-gray-400 mt-1">
                 <span>0</span>
-                <span>100</span>
-                <span>200+</span>
+                <span>250</span>
+                <span>500</span>
               </div>
             </div>
           </div>

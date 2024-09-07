@@ -24,11 +24,14 @@ export default function RepSelector({ value, onChange }: RepSelectorProps) {
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [ref])
+  }, [isOpen])
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = parseInt(e.target.value)
