@@ -5,7 +5,7 @@ import { useAuth } from '../../components/AuthProvider'
 import { collection, query, where, getDocs, addDoc, updateDoc, doc, orderBy, deleteDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import { MainMenu } from '../../components/MainMenu'
-import { Check, Plus, X, ChevronLeft, ChevronRight, Flame, Trophy, Target } from 'lucide-react'
+import { Check, X, ChevronLeft, ChevronRight, Flame } from 'lucide-react'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -102,8 +102,7 @@ const presetPlans: PresetPlan[] = [
       { name: 'Stay hydrated', frequency: 7 },
     ],
   },
-];
-
+]
 
 export default function HabitTracker() {
   const { user } = useAuth()
@@ -285,42 +284,6 @@ export default function HabitTracker() {
     })
   }
 
-  const getCompletedCount = (habit: Habit) => {
-    const startOfWeek = new Date(selectedDate)
-    const endOfWeek = new Date(startOfWeek)
-    endOfWeek.setDate(endOfWeek.getDate() + 6)
-
-    return habit.completedDays.filter(day => {
-      const date = new Date(day)
-      return date >= startOfWeek && date <= endOfWeek
-    }).length
-  }
-
-  const getProgressMessage = (habit: Habit) => {
-    const completedCount = getCompletedCount(habit)
-    const remaining = habit.frequency - completedCount
-
-    if (completedCount >= habit.frequency) {
-      return (
-        <div className="flex items-center text-green-400">
-          <Trophy className="w-5 h-5 mr-2" />
-          <span>Great job! You&apos;ve completed your goal {completedCount} times this week!</span>
-        </div>
-      )
-    } else if (remaining > 0) {
-      return (
-        <div className="flex items-center text-yellow-400">
-          <Target className="w-5 h-5 mr-2" />
-          <span>
-            Keep going! You need to complete this habit {remaining} more {remaining === 1 ? 'time' : 'times'} this week.
-          </span>
-        </div>
-      );      
-    } else {
-      return null
-    }
-  }
-
   if (!user) {
     return <div className="text-white text-center mt-10">Please sign in to track your habits.</div>
   }
@@ -365,12 +328,9 @@ export default function HabitTracker() {
             <div className="space-y-4">
               {habits.map((habit) => (
                 <div key={habit.id} className="bg-gray-800 rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-white font-semibold">{habit.name}</h3>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-bold text-yellow-500 bg-gray-900 px-3 py-1 rounded-lg">{habit.name}</h3>
                     <div className="flex items-center space-x-2">
-                      <div className="bg-yellow-500 text-gray-900 px-2 py-1 rounded-full text-sm font-semibold">
-                        {getCompletedCount(habit)}/{habit.frequency}
-                      </div>
                       <div className="flex items-center bg-gradient-to-r from-orange-500 to-yellow-500 text-gray-900 px-2 py-1 rounded-full">
                         <Flame className="w-4 h-4 mr-1" />
                         <span className="font-semibold">{habit.streak}</span>
@@ -400,13 +360,10 @@ export default function HabitTracker() {
                             ) : (
                               <span className="w-5 h-5 border-2 border-gray-400 rounded-full"></span>
                             )}
-                          </button>
+                            </button>
                         </div>
                       )
                     })}
-                  </div>
-                  <div className="mt-2 p-2 bg-gray-700 rounded-lg">
-                    {getProgressMessage(habit)}
                   </div>
                 </div>
               ))}
@@ -424,17 +381,37 @@ export default function HabitTracker() {
                 className="bg-gray-700 text-white rounded-lg p-2"
                 required
               />
-              <div className="flex items-center space-x-4">
-                <label className="text-white">Frequency per week:</label>
+              <div className="flex flex-col space-y-2">
+                <label className="text-white">Frequency per week: {newHabitFrequency}</label>
                 <input
-                  type="number"
-                  value={newHabitFrequency}
-                  onChange={(e) => setNewHabitFrequency(parseInt(e.target.value))}
+                  type="range"
                   min="1"
                   max="7"
-                  className="bg-gray-700 text-white rounded-lg p-2 w-16"
-                  required
+                  value={newHabitFrequency}
+                  onChange={(e) => setNewHabitFrequency(parseInt(e.target.value))}
+                  className="w-full appearance-none bg-gray-700 h-2 rounded-full outline-none"
+                  style={{
+                    background: `linear-gradient(to right, #EAB308 0%, #EAB308 ${(newHabitFrequency - 1) * 16.67}%, #4B5563 ${(newHabitFrequency - 1) * 16.67}%, #4B5563 100%)`,
+                  }}
                 />
+                <style jsx>{`
+                  input[type=range]::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    appearance: none;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    background: #EAB308;
+                    cursor: pointer;
+                  }
+                  input[type=range]::-moz-range-thumb {
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    background: #EAB308;
+                    cursor: pointer;
+                  }
+                `}</style>
               </div>
               <button
                 type="submit"
