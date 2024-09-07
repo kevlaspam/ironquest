@@ -17,7 +17,9 @@ import {
   arrayRemove,
   getDoc,
   where,
-  setDoc
+  setDoc,
+  Timestamp,
+  FieldValue
 } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import { MainMenu } from '../../components/MainMenu'
@@ -40,9 +42,9 @@ type Post = {
   content: string
   userId: string
   userName: string
-  createdAt: { toDate: () => Date } | null
+  createdAt: Timestamp | FieldValue | null
   likes: string[]
-  comments: { userId: string; userName: string; content: string; createdAt: { toDate: () => Date }; likes: string[] }[]
+  comments: { userId: string; userName: string; content: string; createdAt: Timestamp; likes: string[] }[]
   workoutId?: string
   workout?: Workout
   mood?: string
@@ -120,7 +122,7 @@ export default function Feed() {
 
   useEffect(() => {
     if (!db || !user) return
-  
+
     const fetchUserProfile = async () => {
       const profileDoc = await getDoc(doc(db, 'userProfiles', user.uid))
       if (profileDoc.exists()) {
@@ -135,7 +137,7 @@ export default function Feed() {
         setUserProfile(defaultProfile)
       }
     }
-  
+
     fetchUserProfile()
     fetchPosts()
 
@@ -152,7 +154,7 @@ export default function Feed() {
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user || !newPost.trim()) return
-  
+
     try {
       const postData: Omit<Post, 'id'> = {
         content: newPost.trim(),
@@ -163,13 +165,13 @@ export default function Feed() {
         comments: [],
         userProfileEmoji: userProfile?.profileEmoji || '💪'
       }
-  
+
       if (selectedMood) {
         postData.mood = selectedMood
       }
-  
+
       const postRef = await addDoc(collection(db, 'posts'), postData)
-  
+
       if (selectedWorkout) {
         const workoutDoc = await getDoc(doc(db, 'workouts', selectedWorkout))
         if (workoutDoc.exists()) {
@@ -178,7 +180,7 @@ export default function Feed() {
           await updateDoc(postRef, { workoutId: selectedWorkout })
         }
       }
-  
+
       setNewPost('')
       setSelectedWorkout(null)
       setPreviewWorkout(null)
@@ -294,145 +296,146 @@ export default function Feed() {
     setPreviewWorkout(selectedWorkout || null)
   }
 
-  if (!user) {
-    return <div className="text-center mt-10 text-white">Please sign in to view the feed.</div>
-  }
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-yellow-500"></div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="text-red-500 text-center p-8 bg-gray-800 rounded-xl shadow-lg">
-        <AlertCircle className="w-16 h-16 mx-auto mb-4" />
-        <p className="text-xl font-semibold mb-2">Oops! Something went wrong.</p>
-        <p>{error}</p>
-      </div>
-    )
-  }
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <MainMenu />
       <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float">Social Feed 📢</h1>
       
-      <form onSubmit={handlePostSubmit} className="mb-8 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
-        <textarea
-          value={newPost}
-          onChange={(e) => setNewPost(e.target.value)}
-          placeholder="Share your workout or fitness thoughts..."
-          className="w-full p-2 rounded-md bg-gray-700 text-white border-2 border-gray-600 focus:border-yellow-500 focus:outline-none transition-colors duration-200"
-          rows={4}
-        />
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <select
-            value={selectedWorkout || ''}
-            onChange={(e) => handleWorkoutSelect(e.target.value)}
-            className="p-2 rounded-md bg-gray-700 text-white border-2 border-gray-600 focus:border-yellow-500 focus:outline-none transition-colors duration-200"
-          >
-            <option value="">Select a workout</option>
-            {workouts.map((workout) => (
-              <option key={workout.id} value={workout.id}>
-                {workout.name} - {new Date(workout.date.seconds * 1000).toLocaleDateString()}
-              </option>
-            ))}
-          </select>
-          <select
-            value={selectedMood || ''}
-            onChange={(e) => setSelectedMood(e.target.value)}
-            className="p-2 rounded-md bg-gray-700 text-white border-2 border-gray-600 focus:border-yellow-500 focus:outline-none transition-colors duration-200"
-          >
-            <option value="">Select mood</option>
-            {moodOptions.map((mood) => (
-              <option key={mood.text} value={mood.emoji}>
-                {mood.text} {mood.emoji}
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            className="bg-yellow-500 text-gray-900 px-4 py-2 rounded-full hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transition-colors duration-200 flex items-center"
-          >
-            <Send className="w-5 h-5 mr-2" />
-            Post
-          </button>
+      {!user && (
+        <div className="text-center mt-10 text-white">Please sign in to view the feed.</div>
+      )}
+
+      {user && loading && (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-yellow-500"></div>
         </div>
-        {previewWorkout && (
-          <div className="mt-4">
-            <WorkoutCard workout={previewWorkout} />
-          </div>
-        )}
-      </form>
-      
-      <div className="space-y-8">
-        {posts.map((post) => (
-          <div key={post.id} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-10 h-10 rounded-full bg-yellow-500 flex items-center justify-center text-2xl">
-                  {post.userProfileEmoji}
+      )}
+
+      {user && error && (
+        <div className="text-red-500 text-center p-8 bg-gray-800 rounded-xl shadow-lg">
+          <AlertCircle className="w-16 h-16 mx-auto mb-4" />
+          <p className="text-xl font-semibold mb-2">Oops! Something went wrong.</p>
+          <p>{error}</p>
+        </div>
+      )}
+
+      {user && !loading && !error && (
+        <>
+          <form onSubmit={handlePostSubmit} className="mb-8 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
+            <textarea
+              value={newPost}
+              onChange={(e) => setNewPost(e.target.value)}
+              placeholder="Share your workout or fitness thoughts..."
+              className="w-full p-2 rounded-md bg-gray-700 text-white border-2 border-gray-600 focus:border-yellow-500 focus:outline-none transition-colors duration-200"
+              rows={4}
+            />
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <select
+                value={selectedWorkout || ''}
+                onChange={(e) => handleWorkoutSelect(e.target.value)}
+                className="p-2 rounded-md bg-gray-700 text-white border-2 border-gray-600 focus:border-yellow-500 focus:outline-none transition-colors duration-200"
+              >
+                <option value="">Select a workout</option>
+                {workouts.map((workout) => (
+                  <option key={workout.id} value={workout.id}>
+                    {workout.name} - {new Date(workout.date.seconds * 1000).toLocaleDateString()}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={selectedMood || ''}
+                onChange={(e) => setSelectedMood(e.target.value)}
+                className="p-2 rounded-md bg-gray-700 text-white border-2 border-gray-600 focus:border-yellow-500 focus:outline-none transition-colors duration-200"
+              >
+                <option value="">Select mood</option>
+                {moodOptions.map((mood) => (
+                  <option key={mood.text} value={mood.emoji}>
+                    {mood.text} {mood.emoji}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                className="bg-yellow-500 text-gray-900 px-4 py-2 rounded-full hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transition-colors duration-200 flex items-center"
+              >
+                <Send className="w-5 h-5 mr-2" />
+                Post
+              </button>
+            </div>
+            {previewWorkout && (
+              <div className="mt-4">
+                <WorkoutCard workout={previewWorkout} />
+              </div>
+            )}
+          </form>
+          
+          <div className="space-y-8">
+            {posts.map((post) => (
+              <div key={post.id} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-10 h-10 rounded-full bg-yellow-500 flex items-center justify-center text-2xl">
+                      {post.userProfileEmoji}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">@{post.userName}</h3>
+                      <p className="text-sm text-gray-400">
+                        {post.createdAt && 'toDate' in post.createdAt
+                          ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true })
+                          : 'Just now'}
+                      </p>
+                    </div>
+                  </div>
+                  {post.userId === user.uid && (
+                    <button
+                      onClick={() => handleDeletePost(post.id)}
+                      className="text-red-500 hover:text-red-600 transition-colors duration-200"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+                <p className="text-white mb-4">{post.content}</p>
+                {post.mood && (
+                  <span className="inline-block bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold mr-2 mb-2">
+                    {post.mood} {moodOptions.find(m => m.emoji === post.mood)?.text}
+                  </span>
+                )}
+                {post.workout && (
+                  <div className="mb-4">
+                    <WorkoutCard workout={post.workout} />
+                  </div>
+                )}
+                <div className="flex items-center space-x-4 mb-4">
+                  <button
+                    onClick={() => handleLikePost(post.id)}
+                    className={`flex items-center space-x-1 ${
+                      post.likes?.includes(user.uid) ? 'text-red-500' : 'text-gray-400'
+                    } hover:text-red-500 transition-colors duration-200`}
+                  >
+                    <Heart className="w-5 h-5" />
+                    <span>{post.likes?.length || 0}</span>
+                  </button>
+                  <div className="flex items-center space-x-1 text-gray-400">
+                    <MessageCircle className="w-5 h-5" />
+                    <span>{post.comments?.length || 0}</span>
+                  </div>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">@{post.userName}</h3>
-                  <p className="text-sm text-gray-400">
-                    {post.createdAt && 'toDate' in post.createdAt
-                      ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true })
-                      : 'Just now'}
-                  </p>
+                  <CommentSection
+                    postId={post.id}
+                    comments={post.comments || []}
+                    onComment={(comment) => handleAddComment(post.id, comment)}
+                    onLike={handleLikeComment}
+                    currentUserId={user.uid}
+                  />
                 </div>
               </div>
-              {post.userId === user.uid && (
-                <button
-                  onClick={() => handleDeletePost(post.id)}
-                  className="text-red-500 hover:text-red-600 transition-colors duration-200"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              )}
-            </div>
-            <p className="text-white mb-4">{post.content}</p>
-            {post.mood && (
-              <span className="inline-block bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold mr-2 mb-2">
-                {post.mood} {moodOptions.find(m => m.emoji === post.mood)?.text}
-              </span>
-            )}
-            {post.workout && (
-              <div className="mb-4">
-                <WorkoutCard workout={post.workout} />
-              </div>
-            )}
-            <div className="flex items-center space-x-4 mb-4">
-              <button
-                onClick={() => handleLikePost(post.id)}
-                className={`flex items-center space-x-1 ${
-                  post.likes?.includes(user.uid) ? 'text-red-500' : 'text-gray-400'
-                } hover:text-red-500 transition-colors duration-200`}
-              >
-                <Heart className="w-5 h-5" />
-                <span>{post.likes?.length || 0}</span>
-              </button>
-              <div className="flex items-center space-x-1 text-gray-400">
-                <MessageCircle className="w-5 h-5" />
-                <span>{post.comments?.length || 0}</span>
-              </div>
-            </div>
-            <div>
-              <CommentSection
-                postId={post.id}
-                comments={post.comments || []}
-                onComment={(comment) => handleAddComment(post.id, comment)}
-                onLike={handleLikeComment}
-                currentUserId={user.uid}
-              />
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
+      
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}
