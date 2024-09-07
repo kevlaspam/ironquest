@@ -28,11 +28,13 @@ import { WorkoutCard } from '../../components/WorkoutCard'
 import { CommentSection } from '../../components/CommentSection'
 import { Toast } from '../../components/Toast'
 import { formatDistanceToNow } from 'date-fns'
+import { ErrorMessage } from '../../components/feed/ErrorMessage'
+import { LoadingSpinner } from '../../components/feed/LoadingSpinner'
 
 type Workout = {
   id: string
   name: string
-  date: { seconds: number; nanoseconds: number }
+  date: Timestamp
   exercises: { name: string; sets: { reps: number; weight: number }[] }[]
   duration: number
 }
@@ -143,10 +145,14 @@ export default function Feed() {
 
     const workoutsQuery = query(collection(db, 'workouts'), where('userId', '==', user.uid), orderBy('date', 'desc'), limit(10))
     getDocs(workoutsQuery).then((querySnapshot) => {
-      const workoutsData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Workout[]
+      const workoutsData = querySnapshot.docs.map(doc => {
+        const data = doc.data()
+        return {
+          id: doc.id,
+          ...data,
+          date: data.date as Timestamp
+        }
+      }) as Workout[]
       setWorkouts(workoutsData)
     })
   }, [user, fetchPosts])
@@ -296,30 +302,20 @@ export default function Feed() {
     setPreviewWorkout(selectedWorkout || null)
   }
 
+  if (!user) {
+    return <div className="text-center mt-10 text-white">Please sign in to view the feed.</div>
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <MainMenu />
       <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float">Social Feed 📢</h1>
       
-      {!user && (
-        <div className="text-center mt-10 text-white">Please sign in to view the feed.</div>
-      )}
+      {loading && <LoadingSpinner />}
 
-      {user && loading && (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-yellow-500"></div>
-        </div>
-      )}
+      {error && <ErrorMessage message={error} />}
 
-      {user && error && (
-        <div className="text-red-500 text-center p-8 bg-gray-800 rounded-xl shadow-lg">
-          <AlertCircle className="w-16 h-16 mx-auto mb-4" />
-          <p className="text-xl font-semibold mb-2">Oops! Something went wrong.</p>
-          <p>{error}</p>
-        </div>
-      )}
-
-      {user && !loading && !error && (
+      {!loading && !error && (
         <>
           <form onSubmit={handlePostSubmit} className="mb-8 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
             <textarea
@@ -338,7 +334,7 @@ export default function Feed() {
                 <option value="">Select a workout</option>
                 {workouts.map((workout) => (
                   <option key={workout.id} value={workout.id}>
-                    {workout.name} - {new Date(workout.date.seconds * 1000).toLocaleDateString()}
+                    {workout.name} - {workout.date.toDate().toLocaleDateString()}
                   </option>
                 ))}
               </select>
@@ -421,15 +417,13 @@ export default function Feed() {
                     <span>{post.comments?.length || 0}</span>
                   </div>
                 </div>
-                <div>
-                  <CommentSection
-                    postId={post.id}
-                    comments={post.comments || []}
-                    onComment={(comment) => handleAddComment(post.id, comment)}
-                    onLike={handleLikeComment}
-                    currentUserId={user.uid}
-                  />
-                </div>
+                <CommentSection
+                  postId={post.id}
+                  comments={post.comments || []}
+                  onComment={(comment) => handleAddComment(post.id, comment)}
+                  onLike={handleLikeComment}
+                  currentUserId={user.uid}
+                />
               </div>
             ))}
           </div>
