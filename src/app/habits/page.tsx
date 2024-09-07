@@ -5,7 +5,7 @@ import { useAuth } from '../../components/AuthProvider'
 import { collection, query, where, getDocs, addDoc, updateDoc, doc, orderBy, deleteDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import { MainMenu } from '../../components/MainMenu'
-import { Check, Plus, X, ChevronLeft, ChevronRight, Flame } from 'lucide-react'
+import { Check, Plus, X, ChevronLeft, ChevronRight, Flame, Trophy, Target } from 'lucide-react'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -61,7 +61,7 @@ export default function HabitTracker() {
   const [newHabitName, setNewHabitName] = useState('')
   const [newHabitFrequency, setNewHabitFrequency] = useState(1)
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
-  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [selectedDate, setSelectedDate] = useState(getStartOfWeek(new Date()))
 
   useEffect(() => {
     if (user) {
@@ -71,6 +71,13 @@ export default function HabitTracker() {
       setError("User not authenticated")
     }
   }, [user])
+
+  function getStartOfWeek(date: Date): Date {
+    const d = new Date(date)
+    const day = d.getDay()
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+    return new Date(d.setDate(diff))
+  }
 
   const fetchHabits = async () => {
     if (!user || !db) {
@@ -202,31 +209,62 @@ export default function HabitTracker() {
   }
 
   const getDaysOfWeek = () => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-    const startDay = new Date(selectedDate)
-    startDay.setDate(startDay.getDate() - 3)
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     return Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(startDay)
+      const date = new Date(selectedDate)
       date.setDate(date.getDate() + i)
       return {
-        day: days[date.getDay()],
+        day: days[i],
         date: date.toISOString().split('T')[0],
       }
     })
   }
 
-  const changeDate = (days: number) => {
+  const changeDate = (weeks: number) => {
     const newDate = new Date(selectedDate)
-    newDate.setDate(newDate.getDate() + days)
-    setSelectedDate(newDate)
+    newDate.setDate(newDate.getDate() + weeks * 7)
+    setSelectedDate(getStartOfWeek(newDate))
   }
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
-      weekday: 'short',
       month: 'short',
       day: 'numeric',
     })
+  }
+
+  const getCompletedCount = (habit: Habit) => {
+    const startOfWeek = new Date(selectedDate)
+    const endOfWeek = new Date(startOfWeek)
+    endOfWeek.setDate(endOfWeek.getDate() + 6)
+
+    return habit.completedDays.filter(day => {
+      const date = new Date(day)
+      return date >= startOfWeek && date <= endOfWeek
+    }).length
+  }
+
+  const getProgressMessage = (habit: Habit) => {
+    const completedCount = getCompletedCount(habit)
+    const remaining = habit.frequency - completedCount
+
+    if (completedCount >= habit.frequency) {
+      return (
+        <div className="flex items-center text-green-400">
+          <Trophy className="w-5 h-5 mr-2" />
+          <span>Great job! You've completed your goal {completedCount} times this week!</span>
+        </div>
+      )
+    } else if (remaining > 0) {
+      return (
+        <div className="flex items-center text-yellow-400">
+          <Target className="w-5 h-5 mr-2" />
+          <span>Keep going! You need to complete this habit {remaining} more {remaining === 1 ? 'time' : 'times'} this week.</span>
+        </div>
+      )
+    } else {
+      return null
+    }
   }
 
   if (!user) {
@@ -252,6 +290,75 @@ export default function HabitTracker() {
         </div>
       ) : (
         <>
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
+            <div className="flex justify-between items-center mb-4">
+              <button
+                onClick={() => changeDate(-1)}
+                className="bg-yellow-500 text-gray-900 p-2 rounded-full hover:bg-yellow-400 transition-colors"
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <h2 className="text-xl font-semibold text-white">
+                Week of {formatDate(selectedDate)} - {formatDate(new Date(selectedDate.getTime() + 6 * 24 * 60 * 60 * 1000))}
+              </h2>
+              <button
+                onClick={() => changeDate(1)}
+                className="bg-yellow-500 text-gray-900 p-2 rounded-full hover:bg-yellow-400 transition-colors"
+              >
+                <ChevronRight size={24} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              {habits.map((habit) => (
+                <div key={habit.id} className="bg-gray-800 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-white font-semibold">{habit.name}</h3>
+                    <div className="flex items-center space-x-2">
+                      <div className="bg-yellow-500 text-gray-900 px-2 py-1 rounded-full text-sm font-semibold">
+                        {getCompletedCount(habit)}/{habit.frequency}
+                      </div>
+                      <div className="flex items-center bg-gradient-to-r from-orange-500 to-yellow-500 text-gray-900 px-2 py-1 rounded-full">
+                        <Flame className="w-4 h-4 mr-1" />
+                        <span className="font-semibold">{habit.streak}</span>
+                      </div>
+                      <button
+                        onClick={() => removeHabit(habit.id)}
+                        className="p-1 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
+                      >
+                        <X className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-7 gap-2 mb-2">
+                    {getDaysOfWeek().map(({ day, date }) => {
+                      const isCompleted = habit.completedDays.includes(date)
+                      return (
+                        <div key={date} className="flex flex-col items-center">
+                          <span className="text-xs text-gray-400">{day}</span>
+                          <button
+                            onClick={() => toggleHabitCompletion(habit, date)}
+                            className={`w-8 h-8 mt-1 rounded-full flex items-center justify-center transition-colors ${
+                              isCompleted ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 hover:bg-gray-600'
+                            }`}
+                          >
+                            {isCompleted ? (
+                              <Check className="w-5 h-5 text-white" />
+                            ) : (
+                              <span className="w-5 h-5 border-2 border-gray-400 rounded-full"></span>
+                            )}
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div className="mt-2 text-sm">
+                    {getProgressMessage(habit)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
             <h2 className="text-2xl font-semibold mb-4 text-white">Add New Habit</h2>
             <form onSubmit={addHabit} className="flex flex-col space-y-4">
@@ -317,70 +424,6 @@ export default function HabitTracker() {
                 </button>
               </div>
             )}
-          </div>
-
-          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
-            <div className="flex justify-between items-center mb-4">
-              <button
-                onClick={() => changeDate(-7)}
-                className="bg-yellow-500 text-gray-900 p-2 rounded-full hover:bg-yellow-400 transition-colors"
-              >
-                <ChevronLeft size={24} />
-              </button>
-              <h2 className="text-xl font-semibold text-white">
-                {formatDate(selectedDate)}
-              </h2>
-              <button
-                onClick={() => changeDate(7)}
-                className="bg-yellow-500 text-gray-900 p-2 rounded-full hover:bg-yellow-400 transition-colors"
-              >
-                <ChevronRight size={24} />
-              </button>
-            </div>
-            <div className="space-y-4">
-              {habits.map((habit) => (
-                <div key={habit.id} className="bg-gray-800 rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-white font-semibold">{habit.name}</h3>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-yellow-500">{habit.frequency}x/week</span>
-                      <div className="flex items-center">
-                        <Flame className="w-4 h-4 text-yellow-500 mr-1" />
-                        <span className="text-white">{habit.streak}</span>
-                      </div>
-                      <button
-                        onClick={() => removeHabit(habit.id)}
-                        className="p-1 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
-                      >
-                        <X className="w-4 h-4 text-white" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-7 gap-2">
-                    {getDaysOfWeek().map(({ day, date }) => {
-                      const isCompleted = habit.completedDays.includes(date)
-                      return (
-                        <div key={date} className="flex flex-col items-center">
-                          <span className="text-xs text-gray-400">{day}</span>
-                          <button
-                            onClick={() => toggleHabitCompletion(habit, date)}
-                            className={`w-8 h-8 mt-1 rounded-full flex items-center justify-center transition-colors ${
-                              isCompleted ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 hover:bg-gray-600'
-                            }`}
-                          >
-                            {isCompleted ? (
-                              <Check className="w-5 h-5 text-white" />
-                            ) : (
-                              <span className="w-5 h-5 border-2 border-gray-400 rounded-full"></span>
-                            )}
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </>
       )}
