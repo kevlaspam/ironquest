@@ -2,6 +2,17 @@
 
 import React from 'react'
 
+type UserProfile = {
+  name: string
+  username: string
+  age: number
+  height: number
+  gender: string
+  fitnessGoal: string
+  activityLevel: string
+  profileEmoji: string
+}
+
 type EditProfileCardProps = {
   profile: UserProfile
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void
@@ -18,7 +29,7 @@ const emojiOptions = [
   '🦅', '🦄', '🦋', '🐍', '🐢', '🐬', '🦜', '🐠', '🦓', '🐎', // More animals
   '🎧', '📸', '🎮', '🏆', '⚽', '🏀', '🎸', '🎨', '🎤', '🚗', '🚴‍♀️', // Hobbies and lifestyle
   '🌟', '🔥', '🌈', '✨', '💎', '🎯', '🌻', '🍀', '🎲' // Symbolic or aesthetic options
-];
+]
 
 export const EditProfileCard: React.FC<EditProfileCardProps> = ({
   profile,
@@ -57,7 +68,7 @@ export const EditProfileCard: React.FC<EditProfileCardProps> = ({
           />
         </div>
         <div>
-          <label htmlFor="newUsername" className="block text-gray-300 font-bold mb-2">Set New Username</label>
+          <label htmlFor="newUsername" className="block text-gray-300 font-bold mb-2">New Username</label>
           <input
             type="text"
             id="newUsername"
