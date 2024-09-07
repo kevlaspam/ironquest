@@ -27,31 +27,83 @@ const presetPlans: PresetPlan[] = [
   {
     name: '75 Hard',
     habits: [
-      { name: 'Work out twice daily (45 minutes each)', frequency: 7 },
-      { name: 'Follow a diet', frequency: 7 },
-      { name: 'No alcohol or cheat meals', frequency: 7 },
+      { name: 'Work out twice daily (45 min each)', frequency: 7 },
+      { name: 'Follow a strict diet', frequency: 7 },
+      { name: 'No alcohol or cheats', frequency: 7 },
       { name: 'Take a progress picture', frequency: 7 },
       { name: 'Drink 1 gallon of water', frequency: 7 },
-      { name: 'Read 10 pages of a book', frequency: 7 },
+      { name: 'Read 10 pages daily', frequency: 7 },
     ],
   },
   {
-    name: 'Build Workout Habit',
+    name: 'Gym Habit Builder',
     habits: [
-      { name: 'Go to the gym', frequency: 3 },
-      { name: 'Take pre-workout', frequency: 3 },
-      { name: 'Log workout in app', frequency: 3 },
+      { name: 'Go to the gym', frequency: 4 },
+      { name: 'Take pre-workout', frequency: 4 },
+      { name: 'Log workout', frequency: 4 },
+      { name: 'Stretch post-workout', frequency: 4 },
     ],
   },
   {
-    name: 'Supplement Routine',
+    name: 'Supplements',
     habits: [
       { name: 'Take multivitamin', frequency: 7 },
-      { name: 'Take protein shake', frequency: 7 },
+      { name: 'Protein shake post-workout', frequency: 4 },
       { name: 'Take creatine', frequency: 7 },
+      { name: 'Take omega-3', frequency: 7 },
     ],
   },
-]
+  {
+    name: 'Hypertrophy',
+    habits: [
+      { name: 'Target muscle group', frequency: 5 },
+      { name: 'Lift heavy', frequency: 5 },
+      { name: 'High-protein meal', frequency: 5 },
+      { name: 'Track macros', frequency: 7 },
+      { name: 'Sleep 7-8 hours', frequency: 7 },
+    ],
+  },
+  {
+    name: 'Functional Fitness',
+    habits: [
+      { name: 'Dynamic stretches', frequency: 5 },
+      { name: 'Do WOD', frequency: 5 },
+      { name: 'Mobility work', frequency: 3 },
+      { name: 'Practice lifts', frequency: 2 },
+      { name: 'Follow clean diet', frequency: 7 },
+    ],
+  },
+  {
+    name: 'Strength',
+    habits: [
+      { name: 'Squat', frequency: 2 },
+      { name: 'Bench press', frequency: 2 },
+      { name: 'Deadlift', frequency: 2 },
+      { name: 'Accessory lifts', frequency: 3 },
+      { name: 'Track progress', frequency: 7 },
+    ],
+  },
+  {
+    name: 'Cardio',
+    habits: [
+      { name: 'Do HIIT', frequency: 3 },
+      { name: 'Steady-state cardio', frequency: 3 },
+      { name: 'Stretch after cardio', frequency: 3 },
+      { name: 'Monitor heart rate', frequency: 3 },
+    ],
+  },
+  {
+    name: 'Recovery',
+    habits: [
+      { name: 'Foam roll', frequency: 4 },
+      { name: 'Static stretching', frequency: 4 },
+      { name: 'Yoga or Pilates', frequency: 2 },
+      { name: 'Massage therapy', frequency: 1 },
+      { name: 'Stay hydrated', frequency: 7 },
+    ],
+  },
+];
+
 
 export default function HabitTracker() {
   const { user } = useAuth()
