@@ -4,6 +4,11 @@ import React from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { Percent } from 'lucide-react'
 
+type BodyFatEntry = {
+  date: string
+  bodyFat: number
+}
+
 type BodyFatTrackingCardProps = {
   bodyFatHistory: BodyFatEntry[]
   newBodyFat: number | ''
