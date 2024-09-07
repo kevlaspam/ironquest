@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../components/AuthProvider'
 import { collection, query, where, getDocs, addDoc, updateDoc, doc, orderBy, deleteDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import { MainMenu } from '../../components/MainMenu'
-import { Check, X, ChevronLeft, ChevronRight, Flame } from 'lucide-react'
+import { Check, X, ChevronLeft, ChevronRight, Flame, Trophy } from 'lucide-react'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -15,12 +15,13 @@ type Habit = {
   name: string
   frequency: number
   completedDays: string[]
-  streak: number
+  currentStreak: number
+  longestStreak: number
 }
 
 type PresetPlan = {
   name: string
-  habits: Omit<Habit, 'id' | 'userId' | 'completedDays' | 'streak'>[]
+  habits: Omit<Habit, 'id' | 'userId' | 'completedDays' | 'currentStreak' | 'longestStreak'>[]
 }
 
 const presetPlans: PresetPlan[] = [
@@ -114,6 +115,46 @@ export default function HabitTracker() {
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState(getStartOfWeek(new Date()))
 
+  const calculateStreaks = (completedDays: string[]): { currentStreak: number, longestStreak: number } => {
+    if (completedDays.length === 0) return { currentStreak: 0, longestStreak: 0 }
+    
+    const sortedDays = completedDays.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    let currentStreak = 0
+    let longestStreak = 0
+    let tempStreak = 0
+    let currentDate = new Date(today)
+    currentDate.setDate(currentDate.getDate() + 1) // Start from tomorrow to include today
+
+    for (const day of sortedDays) {
+      const completedDate = new Date(day)
+      completedDate.setHours(0, 0, 0, 0)
+      
+      if (currentDate.getTime() - completedDate.getTime() <= 24 * 60 * 60 * 1000) {
+        tempStreak++
+        currentDate = completedDate
+      } else {
+        if (tempStreak > longestStreak) {
+          longestStreak = tempStreak
+        }
+        tempStreak = 1
+        currentDate = completedDate
+      }
+    }
+
+    if (tempStreak > longestStreak) {
+      longestStreak = tempStreak
+    }
+
+    // Check if the streak is current (includes today or yesterday)
+    const lastCompletedDay = new Date(sortedDays[0])
+    const isCurrentStreak = (today.getTime() - lastCompletedDay.getTime()) <= 24 * 60 * 60 * 1000
+    currentStreak = isCurrentStreak ? tempStreak : 0
+
+    return { currentStreak, longestStreak }
+  }
+
   const fetchHabits = useCallback(async () => {
     if (!user || !db) {
       setLoading(false)
@@ -128,11 +169,16 @@ export default function HabitTracker() {
         orderBy('name')
       )
       const habitsSnapshot = await getDocs(habitsQuery)
-      const habitsData = habitsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        streak: calculateStreak(doc.data().completedDays as string[])
-      })) as Habit[]
+      const habitsData = habitsSnapshot.docs.map(doc => {
+        const data = doc.data()
+        const { currentStreak, longestStreak } = calculateStreaks(data.completedDays as string[])
+        return {
+          id: doc.id,
+          ...data,
+          currentStreak,
+          longestStreak
+        }
+      }) as Habit[]
       console.log("Fetched habits:", habitsData)
       setHabits(habitsData)
       setError(null)
@@ -155,29 +201,10 @@ export default function HabitTracker() {
 
   function getStartOfWeek(date: Date): Date {
     const d = new Date(date)
+    d.setHours(0, 0, 0, 0)
     const day = d.getDay()
     const diff = d.getDate() - day + (day === 0 ? -6 : 1)
     return new Date(d.setDate(diff))
-  }
-
-  const calculateStreak = (completedDays: string[]): number => {
-    if (completedDays.length === 0) return 0
-    
-    const sortedDays = completedDays.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
-    const today = new Date().toISOString().split('T')[0]
-    let streak = 0
-    let currentDate = new Date(today)
-
-    for (const day of sortedDays) {
-      if (day === currentDate.toISOString().split('T')[0]) {
-        streak++
-        currentDate.setDate(currentDate.getDate() - 1)
-      } else {
-        break
-      }
-    }
-
-    return streak
   }
 
   const addHabit = async (e: React.FormEvent) => {
@@ -190,7 +217,8 @@ export default function HabitTracker() {
         name: newHabitName,
         frequency: newHabitFrequency,
         completedDays: [],
-        streak: 0,
+        currentStreak: 0,
+        longestStreak: 0,
       }
       await addDoc(collection(db, 'habits'), newHabit)
       setNewHabitName('')
@@ -212,11 +240,12 @@ export default function HabitTracker() {
         ? habit.completedDays.filter(d => d !== date)
         : [...habit.completedDays, date]
 
-      const updatedStreak = calculateStreak(updatedCompletedDays)
+      const { currentStreak, longestStreak } = calculateStreaks(updatedCompletedDays)
 
       await updateDoc(habitRef, { 
         completedDays: updatedCompletedDays,
-        streak: updatedStreak
+        currentStreak,
+        longestStreak
       })
       fetchHabits()
     } catch (error) {
@@ -235,7 +264,8 @@ export default function HabitTracker() {
           name: habit.name,
           frequency: habit.frequency,
           completedDays: [],
-          streak: 0,
+          currentStreak: 0,
+          longestStreak: 0,
         })
       }
       fetchHabits()
@@ -260,12 +290,11 @@ export default function HabitTracker() {
   }
 
   const getDaysOfWeek = () => {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(selectedDate)
       date.setDate(date.getDate() + i)
       return {
-        day: days[i],
+        day: date.getDate(),
         date: date.toISOString().split('T')[0],
       }
     })
@@ -332,8 +361,12 @@ export default function HabitTracker() {
                     <h3 className="text-xl font-bold text-yellow-500 bg-gray-900 px-3 py-1 rounded-lg">{habit.name}</h3>
                     <div className="flex items-center space-x-2">
                       <div className="flex items-center bg-gradient-to-r from-orange-500 to-yellow-500 text-gray-900 px-2 py-1 rounded-full">
-                        <Flame className="w-4 h-4 mr-1" />
-                        <span className="font-semibold">{habit.streak}</span>
+                      <Flame className="w-4 h-4 mr-1" />
+                        <span className="font-semibold">{habit.currentStreak}</span>
+                      </div>
+                      <div className="flex items-center bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 px-2 py-1 rounded-full">
+                        <Trophy className="w-4 h-4 mr-1" />
+                        <span className="font-semibold">{habit.longestStreak}</span>
                       </div>
                       <button
                         onClick={() => removeHabit(habit.id)}
@@ -360,7 +393,7 @@ export default function HabitTracker() {
                             ) : (
                               <span className="w-5 h-5 border-2 border-gray-400 rounded-full"></span>
                             )}
-                            </button>
+                          </button>
                         </div>
                       )
                     })}
