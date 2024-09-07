@@ -106,6 +106,7 @@ const presetPlans: PresetPlan[] = [
 ]
 
 export default function HabitTracker() {
+  const [deleteConfirmation, setDeleteConfirmation] = useState<string | null>(null)
   const { user } = useAuth()
   const [habits, setHabits] = useState<Habit[]>([])
   const [loading, setLoading] = useState(true)
@@ -114,6 +115,16 @@ export default function HabitTracker() {
   const [newHabitFrequency, setNewHabitFrequency] = useState(1)
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState(getStartOfWeek(new Date()))
+
+  const handleDeleteClick = (habitId: string) => {
+    if (deleteConfirmation === habitId) {
+      removeHabit(habitId)
+      setDeleteConfirmation(null)
+    } else {
+      setDeleteConfirmation(habitId)
+      setTimeout(() => setDeleteConfirmation(null), 3000)
+    }
+  }  
 
   const calculateStreaks = (completedDays: string[]): { currentStreak: number, longestStreak: number } => {
     if (completedDays.length === 0) return { currentStreak: 0, longestStreak: 0 }
@@ -369,10 +380,18 @@ export default function HabitTracker() {
                         <span className="font-semibold">{habit.longestStreak}</span>
                       </div>
                       <button
-                        onClick={() => removeHabit(habit.id)}
-                        className="p-1 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
+                        onClick={() => handleDeleteClick(habit.id)}
+                        className={`p-1 rounded-full transition-colors ${
+                          deleteConfirmation === habit.id
+                            ? 'bg-red-600 hover:bg-red-700'
+                            : 'bg-red-500 hover:bg-red-600'
+                        }`}
                       >
-                        <X className="w-4 h-4 text-white" />
+                        {deleteConfirmation === habit.id ? (
+                          <span className="text-white text-xs px-1">Confirm</span>
+                        ) : (
+                          <X className="w-4 h-4 text-white" />
+                        )}
                       </button>
                     </div>
                   </div>
