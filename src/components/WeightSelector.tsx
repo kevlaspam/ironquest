@@ -151,8 +151,8 @@ export default function WeightSelector({ value, onChange }: WeightSelectorProps)
               `}</style>
               <div className="flex justify-between text-xs text-gray-400 mt-1">
                 <span>0</span>
-                <span>250</span>
-                <span>500</span>
+                <span>100</span>
+                <span>500+</span>
               </div>
             </div>
           </div>
