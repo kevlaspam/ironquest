@@ -272,7 +272,7 @@ export default function ProfilePage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <MainMenu />
-      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center">Your GymGa.me Profile</h1>
+      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float ">Your GymGa.me Profile 👥</h1>
       
       <div ref={profileCardRef} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
         <div className="flex items-center justify-between mb-6">

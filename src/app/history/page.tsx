@@ -5,7 +5,7 @@ import { useAuth } from '../../components/AuthProvider'
 import { collection, query, where, getDocs, orderBy, limit, deleteDoc, doc, updateDoc, addDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import { MainMenu } from '../../components/MainMenu'
-import { Trash2, AlertCircle, Calendar, Clock, Dumbbell, Share2, ChevronDown, ChevronUp, Edit2, Sword, Trophy, Save } from 'lucide-react'
+import { Trash2, AlertCircle, Calendar, Clock, Dumbbell, Share2, ChevronDown, ChevronUp, Edit2, Sword, Trophy, Save, Info } from 'lucide-react'
 import html2canvas from 'html2canvas'
 
 type Set = {
@@ -175,10 +175,37 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <MainMenu />
-      <h1 className="text-4xl font-bold mb-8 text-white text-center">
-        Your Workout History
-        <span className="inline-block ml-2 animate-bounce">🏆</span>
+      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float">
+        Your Workout History 🏆
       </h1>
+
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500 hover:shadow-xl transition-shadow duration-300">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-semibold text-white">Quick Guide</h2>
+          <Info className="w-6 h-6 text-yellow-500" />
+        </div>
+        <div className="space-y-4">
+          <div className="flex items-center space-x-4">
+            <button
+              className="bg-yellow-500 text-gray-900 p-2 rounded-full hover:bg-yellow-400 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-opacity-50"
+              aria-label="Take screenshot"
+            >
+              <Share2 className="h-5 w-5" />
+            </button>
+            <p className="text-gray-300">Press this button to take a screenshot of your workout</p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <button
+              className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50"
+              aria-label="Save as template"
+            >
+              <Save className="h-5 w-5" />
+            </button>
+            <p className="text-gray-300">Press this button to save this workout as a template</p>
+          </div>
+        </div>
+      </div>
+
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-yellow-500"></div>
@@ -187,7 +214,7 @@ export default function Dashboard() {
         <div className="text-yellow-300 text-center p-8 bg-gray-800 rounded-xl shadow-lg">
           <Trophy className="w-16 h-16 mx-auto mb-4 animate-pulse" />
           <p className="text-xl font-semibold mb-2">Preparing Your Quest Log</p>
-          <p>We&apos;re setting up some things to make your dashboard faster.</p>
+          <p>We're setting up some things to make your dashboard faster.</p>
           <p>This usually takes a few minutes. Please check back soon!</p>
         </div>
       ) : error ? (
@@ -201,7 +228,7 @@ export default function Dashboard() {
           {workouts.map((workout) => (
             <div
               key={workout.id}
-              className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out"
+              className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl"
             >
               <div
                 id={workout.id}
@@ -337,7 +364,7 @@ export default function Dashboard() {
               </div>
               <button
                 onClick={() => toggleExpand(workout.id)}
-                className="w-full bg-gray-700 text-yellow-500 hover:text-yellow-400 transition-colors duration-200 py-3 flex items-center justify-center focus:outline-none focus:bg-gray-600"
+                className="w-full bg-gray-800 text-yellow-500 hover:text-yellow-400 transition-colors duration-200 py-3 flex items-center justify-center focus:outline-none focus:bg-gray-700"
               >
                 {expandedWorkouts.includes(workout.id) ? (
                   <>

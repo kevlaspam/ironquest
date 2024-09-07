@@ -106,9 +106,8 @@ export default function Stats() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <MainMenu />
-      <h1 className="text-4xl font-bold mb-8 text-white text-center">
-        Your GymGa.me Stats
-        <span className="inline-block ml-2 animate-bounce">📊</span>
+      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float">
+        Your GymGa.me Stats 📊
       </h1>
       
       {loading ? (
