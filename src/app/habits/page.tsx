@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../components/AuthProvider'
 import { collection, query, where, getDocs, addDoc, updateDoc, doc, orderBy, deleteDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
@@ -63,23 +63,7 @@ export default function HabitTracker() {
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState(getStartOfWeek(new Date()))
 
-  useEffect(() => {
-    if (user) {
-      fetchHabits()
-    } else {
-      setLoading(false)
-      setError("User not authenticated")
-    }
-  }, [user])
-
-  function getStartOfWeek(date: Date): Date {
-    const d = new Date(date)
-    const day = d.getDay()
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1)
-    return new Date(d.setDate(diff))
-  }
-
-  const fetchHabits = async () => {
+  const fetchHabits = useCallback(async () => {
     if (!user || !db) {
       setLoading(false)
       setError("User or database not initialized")
@@ -107,6 +91,22 @@ export default function HabitTracker() {
     } finally {
       setLoading(false)
     }
+  }, [user])
+
+  useEffect(() => {
+    if (user) {
+      fetchHabits()
+    } else {
+      setLoading(false)
+      setError("User not authenticated")
+    }
+  }, [user, fetchHabits])
+
+  function getStartOfWeek(date: Date): Date {
+    const d = new Date(date)
+    const day = d.getDay()
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+    return new Date(d.setDate(diff))
   }
 
   const calculateStreak = (completedDays: string[]): number => {
@@ -252,16 +252,18 @@ export default function HabitTracker() {
       return (
         <div className="flex items-center text-green-400">
           <Trophy className="w-5 h-5 mr-2" />
-          <span>Great job! You've completed your goal {completedCount} times this week!</span>
+          <span>Great job! You&apos;ve completed your goal {completedCount} times this week!</span>
         </div>
       )
     } else if (remaining > 0) {
       return (
         <div className="flex items-center text-yellow-400">
           <Target className="w-5 h-5 mr-2" />
-          <span>Keep going! You need to complete this habit {remaining} more {remaining === 1 ? 'time' : 'times'} this week.</span>
+          <span>
+            Keep going! You need to complete this habit {remaining} more {remaining === 1 ? 'time' : 'times'} this week.
+          </span>
         </div>
-      )
+      );      
     } else {
       return null
     }
@@ -351,7 +353,7 @@ export default function HabitTracker() {
                       )
                     })}
                   </div>
-                  <div className="mt-2 text-sm">
+                  <div className="mt-2 p-2 bg-gray-700 rounded-lg">
                     {getProgressMessage(habit)}
                   </div>
                 </div>
