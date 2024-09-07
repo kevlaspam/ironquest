@@ -28,8 +28,8 @@ import { WorkoutCard } from '../../components/WorkoutCard'
 import { CommentSection } from '../../components/CommentSection'
 import { Toast } from '../../components/Toast'
 import { formatDistanceToNow } from 'date-fns'
-import { ErrorMessage } from '../../components/feed/ErrorMessage'
-import { LoadingSpinner } from '../../components/feed/LoadingSpinner'
+import { ErrorMessage } from '../../components/ErrorMessage'
+import { LoadingSpinner } from '../../components/LoadingSpinner'
 
 type Workout = {
   id: string
