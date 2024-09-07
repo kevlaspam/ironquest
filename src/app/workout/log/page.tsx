@@ -345,26 +345,26 @@ export default function LogWorkout() {
             {Object.entries(preFilledWorkouts).map(([key, workout]) => (
               <div 
                 key={key} 
-                className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer flex flex-col justify-between p-6 border-4 border-yellow-500"
+                className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between p-6 border-4 border-yellow-500 group hover:scale-105 hover:from-gray-800 hover:via-gray-700 hover:to-gray-800"
                 onClick={() => startWorkout({ name: workout.name, exercises: workout.exercises })}
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-white truncate" title={workout.name}>{workout.name}</h2>
-                    <span className="text-2xl">{workout.icon}</span>
+                    <h2 className="text-xl font-semibold text-white truncate group-hover:text-yellow-400 transition-colors duration-300" title={workout.name}>{workout.name}</h2>
+                    <span className="text-2xl group-hover:text-yellow-400 transition-colors duration-300">{workout.icon}</span>
                   </div>
-                  <ul className="text-gray-300 text-sm mb-4 list-disc list-inside">
+                  <ul className="text-gray-300 text-sm mb-4 list-disc list-inside group-hover:text-white transition-colors duration-300">
                     {workout.exercises.slice(0, 3).map((exercise, index) => (
                       <li key={index} className="truncate">{exercise.name}</li>
                     ))}
                     {workout.exercises.length > 3 && (
-                      <li className="text-gray-400">+{workout.exercises.length - 3} more</li>
+                      <li className="text-gray-400 group-hover:text-gray-200">+{workout.exercises.length - 3} more</li>
                     )}
                   </ul>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-400">{workout.exercises.length} exercises</span>
-                  <ChevronRight className="w-5 h-5 text-yellow-500" />
+                  <span className="text-xs text-gray-400 group-hover:text-gray-200 transition-colors duration-300">{workout.exercises.length} exercises</span>
+                  <ChevronRight className="w-5 h-5 text-yellow-500 group-hover:text-yellow-400 transition-colors duration-300" />
                 </div>
               </div>
             ))}

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from './AuthProvider'
 import { useState, useCallback } from 'react'
-import { Menu, X, Dumbbell, Home, PlusSquare, History, BarChart2, Award, User, LogOut, LogIn } from 'lucide-react'
+import { Menu, X, Dumbbell, Users, PlusSquare, History, BarChart2, Award, User, LogOut, LogIn, CheckSquare } from 'lucide-react'
 
 export function MainMenu() {
   const { user, signIn, signOut } = useAuth()
@@ -12,8 +12,9 @@ export function MainMenu() {
   const router = useRouter()
 
   const menuItems = [
-    { href: '/feed', label: 'Feed', icon: Home },
+    { href: '/feed', label: 'Feed', icon: Users },
     { href: '/workout/log', label: 'Workout', icon: PlusSquare },
+    { href: '/habits', label: 'Habits', icon: CheckSquare },
     { href: '/history', label: 'History', icon: History },
     { href: '/stats', label: 'Stats', icon: BarChart2 },
     { href: '/achievements', label: 'Achievements', icon: Award },
@@ -29,7 +30,7 @@ export function MainMenu() {
     <nav className="bg-gray-800 shadow-lg mb-8 rounded-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/feed" className="flex items-center text-2xl font-extrabold">
+          <Link href="/home" className="flex items-center text-2xl font-extrabold">
             <div className="h-8 w-8 mr-2 flex items-center justify-center bg-gradient-to-r from-yellow-400 to-yellow-600 rounded">
               <Dumbbell className="h-6 w-6 text-gray-800" />
             </div>

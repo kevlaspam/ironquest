@@ -20,6 +20,8 @@ export default function Stats() {
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedExercise, setSelectedExercise] = useState<string>('')
+  const [exerciseOptions, setExerciseOptions] = useState<string[]>([])
 
   useEffect(() => {
     const fetchWorkouts = async () => {
@@ -47,6 +49,18 @@ export default function Stats() {
           ...doc.data()
         })) as Workout[]
         setWorkouts(workoutsData)
+
+        // Extract unique exercise names
+        const allExercises = new Set<string>()
+        workoutsData.forEach(workout => {
+          workout.exercises.forEach(exercise => {
+            allExercises.add(exercise.name)
+          })
+        })
+        setExerciseOptions(Array.from(allExercises))
+        if (allExercises.size > 0) {
+          setSelectedExercise(Array.from(allExercises)[0])
+        }
       } catch (err) {
         console.error('Error fetching workouts:', err)
         setError(`Failed to fetch workouts: ${(err as Error).message}`)
@@ -93,6 +107,17 @@ export default function Stats() {
         total + exercise.sets.reduce((setTotal, set) => setTotal + (set.reps * set.weight), 0), 0
       )
     }));
+  }
+
+  const prepareExerciseWeightData = () => {
+    return workouts.map(workout => {
+      const exercise = workout.exercises.find(e => e.name === selectedExercise);
+      const maxWeight = exercise ? Math.max(...exercise.sets.map(set => set.weight)) : 0;
+      return {
+        date: new Date(workout.date.seconds * 1000).toLocaleDateString(),
+        weight: maxWeight
+      };
+    }).filter(data => data.weight > 0);
   }
 
   const calculateTotalVolume = () => {
@@ -174,6 +199,33 @@ export default function Stats() {
                 {workouts.reduce((total, workout) => total + workout.exercises.length, 0)}
               </p>
             </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold text-white">Top Weight for Exercise Over Time</h2>
+              <select
+                value={selectedExercise}
+                onChange={(e) => setSelectedExercise(e.target.value)}
+                className="bg-gray-700 text-white rounded-lg p-2"
+              >
+                {exerciseOptions.map((exercise) => (
+                  <option key={exercise} value={exercise}>
+                    {exercise}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={prepareExerciseWeightData()}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
+                <XAxis dataKey="date" stroke="#9CA3AF" />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', color: '#fff' }} />
+                <Legend />
+                <Line type="monotone" dataKey="weight" stroke="#EAB308" strokeWidth={2} name="Weight (kg)" />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
 
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
