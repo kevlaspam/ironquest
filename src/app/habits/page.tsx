@@ -204,7 +204,7 @@ export default function HabitTracker() {
   const getDaysOfWeek = () => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     const startDay = new Date(selectedDate)
-    startDay.setDate(startDay.getDate() - 6)
+    startDay.setDate(startDay.getDate() - 3)
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(startDay)
       date.setDate(date.getDate() + i)
@@ -223,9 +223,8 @@ export default function HabitTracker() {
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
+      weekday: 'short',
+      month: 'short',
       day: 'numeric',
     })
   }
@@ -328,8 +327,8 @@ export default function HabitTracker() {
               >
                 <ChevronLeft size={24} />
               </button>
-              <h2 className="text-2xl font-semibold text-white">
-                Week of {formatDate(selectedDate)}
+              <h2 className="text-xl font-semibold text-white">
+                {formatDate(selectedDate)}
               </h2>
               <button
                 onClick={() => changeDate(7)}
@@ -338,66 +337,49 @@ export default function HabitTracker() {
                 <ChevronRight size={24} />
               </button>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-white">
-                <thead>
-                  <tr>
-                    <th className="text-left py-2">Habit</th>
-                    <th className="text-left py-2">Frequency</th>
-                    <th className="text-center py-2">Streak</th>
-                    {getDaysOfWeek().map(({ day, date }) => (
-                      <th key={date} className="text-center py-2 w-12">
-                        <div className="flex flex-col items-center">
-                          <span>{day}</span>
-                          <span className="text-xs">{date.slice(-2)}</span>
+            <div className="space-y-4">
+              {habits.map((habit) => (
+                <div key={habit.id} className="bg-gray-800 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-white font-semibold">{habit.name}</h3>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-yellow-500">{habit.frequency}x/week</span>
+                      <div className="flex items-center">
+                        <Flame className="w-4 h-4 text-yellow-500 mr-1" />
+                        <span className="text-white">{habit.streak}</span>
+                      </div>
+                      <button
+                        onClick={() => removeHabit(habit.id)}
+                        className="p-1 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
+                      >
+                        <X className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-7 gap-2">
+                    {getDaysOfWeek().map(({ day, date }) => {
+                      const isCompleted = habit.completedDays.includes(date)
+                      return (
+                        <div key={date} className="flex flex-col items-center">
+                          <span className="text-xs text-gray-400">{day}</span>
+                          <button
+                            onClick={() => toggleHabitCompletion(habit, date)}
+                            className={`w-8 h-8 mt-1 rounded-full flex items-center justify-center transition-colors ${
+                              isCompleted ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 hover:bg-gray-600'
+                            }`}
+                          >
+                            {isCompleted ? (
+                              <Check className="w-5 h-5 text-white" />
+                            ) : (
+                              <span className="w-5 h-5 border-2 border-gray-400 rounded-full"></span>
+                            )}
+                          </button>
                         </div>
-                      </th>
-                    ))}
-                    <th className="text-center py-2">Remove</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {habits.map((habit) => (
-                    <tr key={habit.id} className="border-t border-gray-700">
-                      <td className="py-2">{habit.name}</td>
-                      <td className="py-2">{habit.frequency}x / week</td>
-                      <td className="py-2 text-center">
-                        <div className="flex items-center justify-center">
-                          <Flame className="w-4 h-4 text-yellow-500 mr-1" />
-                          <span>{habit.streak}</span>
-                        </div>
-                      </td>
-                      {getDaysOfWeek().map(({ day, date }) => {
-                        const isCompleted = habit.completedDays.includes(date)
-                        return (
-                          <td key={date} className="text-center py-2">
-                            <button
-                              onClick={() => toggleHabitCompletion(habit, date)}
-                              className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                                isCompleted ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 hover:bg-gray-600'
-                              }`}
-                            >
-                              {isCompleted ? (
-                                <Check className="w-5 h-5 text-white" />
-                              ) : (
-                                <span className="w-5 h-5 border-2 border-gray-400 rounded-full"></span>
-                              )}
-                            </button>
-                          </td>
-                        )
-                      })}
-                      <td className="text-center py-2">
-                        <button
-                          onClick={() => removeHabit(habit.id)}
-                          className="p-2 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
-                        >
-                          <X className="w-4 h-4 text-white" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </>
