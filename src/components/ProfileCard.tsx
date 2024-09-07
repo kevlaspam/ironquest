@@ -3,6 +3,16 @@
 import React from 'react'
 import { Share2, Target, Scale, Dumbbell, Activity } from 'lucide-react'
 
+type UserProfile = {
+  name: string
+  username: string
+  height: number
+  weightHistory: { date: string; weight: number }[]
+  fitnessGoal: string
+  activityLevel: string
+  profileEmoji: string
+}
+
 type ProfileCardProps = {
   profile: UserProfile
   totalWorkouts: number
