@@ -3,6 +3,11 @@
 import React from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
+type WeightEntry = {
+  date: string
+  weight: number
+}
+
 type WeightTrackingCardProps = {
   weightHistory: WeightEntry[]
   newWeight: number | ''
