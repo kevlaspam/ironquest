@@ -58,20 +58,20 @@ export default function Home() {
           </p>
           <button
             onClick={signIn}
-            className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50"
+            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-gray-900 font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50"
           >
             Start Your Fitness Game
           </button>
         </div>
 
-        <div className="max-w-6xl mx-auto bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-8 shadow-2xl border-2 border-yellow-500 mb-16">
+        <div className="max-w-6xl mx-auto bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-8 shadow-2xl border-4 border-yellow-500 mb-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             {[
               { icon: Dumbbell, title: "Log Workouts", description: "Track your exercises and complete fitness challenges" },
               { icon: Award, title: "Earn Achievements", description: "Unlock rewards as you progress in your fitness journey" },
               { icon: LineChart, title: "Track Progress", description: "Visualize your gains with detailed charts and stats" }
             ].map((item, index) => (
-              <div key={index} className="flex flex-col items-center bg-gray-700 rounded-lg p-6 transition-all duration-300 hover:bg-gray-600 hover:scale-105 border border-yellow-500 cursor-pointer">
+              <div key={index} className="flex flex-col items-center bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg p-6 transition-all duration-300 hover:from-gray-600 hover:to-gray-700 hover:scale-105 border-2 border-yellow-500 cursor-pointer shadow-md">
                 <item.icon size={48} className="mb-4 text-yellow-500" />
                 <h2 className="text-xl font-bold mb-2 text-white">{item.title}</h2>
                 <p className="text-center text-gray-300">{item.description}</p>
@@ -90,7 +90,7 @@ export default function Home() {
                 { icon: Shield, title: "Secure & Private", description: "Your data is protected and secure" },
                 { icon: Smartphone, title: "Mobile Friendly", description: "Access your fitness data on any device" }
               ].map((item, index) => (
-                <div key={index} className="bg-gray-700 p-4 rounded-lg transition-all duration-300 hover:bg-gray-600 hover:scale-105 cursor-pointer">
+                <div key={index} className="bg-gradient-to-br from-gray-700 to-gray-800 p-4 rounded-lg transition-all duration-300 hover:from-gray-600 hover:to-gray-700 hover:scale-105 cursor-pointer shadow-md border border-yellow-500">
                   <item.icon className="text-yellow-500 w-8 h-8 mx-auto mb-2" />
                   <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
                   <p className="text-gray-300 text-sm">{item.description}</p>
@@ -108,7 +108,7 @@ export default function Home() {
           <div className="text-center mb-8">
             <button
               onClick={signIn}
-              className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50"
+              className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-gray-900 font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50"
             >
               Join GymGa.me Now
             </button>
@@ -168,7 +168,7 @@ export default function Home() {
                 ]
               }
             ].map((section, index) => (
-              <div key={index} className="bg-gray-700 p-6 rounded-lg transition-all duration-300 hover:bg-gray-600 hover:scale-105 cursor-pointer">
+              <div key={index} className="bg-gradient-to-br from-gray-700 to-gray-800 p-6 rounded-lg transition-all duration-300 hover:from-gray-600 hover:to-gray-700 hover:scale-105 cursor-pointer shadow-md border-2 border-yellow-500">
                 <h3 className="text-xl font-semibold text-yellow-500 mb-4">{section.title}</h3>
                 <ul className="list-disc list-inside text-gray-300 space-y-2">
                   {section.features.map((feature, featureIndex) => (
@@ -183,7 +183,7 @@ export default function Home() {
         <div className="text-center mt-16">
           <button
             onClick={signIn}
-            className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50 flex items-center justify-center mx-auto"
+            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-gray-900 font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50 flex items-center justify-center mx-auto"
           >
             <LogIn className="mr-2" /> Start Your Fitness Journey
           </button>
