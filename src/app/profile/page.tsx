@@ -5,9 +5,12 @@ import { useAuth } from '../../components/AuthProvider'
 import { doc, getDoc, setDoc, updateDoc, arrayUnion, collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import { MainMenu } from '../../components/MainMenu'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import html2canvas from 'html2canvas'
-import { Dumbbell, Scale, Target, Activity, Share2, User, Loader2, Percent } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import { ProfileCard } from '../../components/ProfileCard'
+import { EditProfileCard } from '../../components/EditProfileCard'
+import { WeightTrackingCard } from '../../components/WeightTrackingCard'
+import { BodyFatTrackingCard } from '../../components/BodyFatTrackingCard'
 
 type WeightEntry = {
   date: string
@@ -33,15 +36,6 @@ type UserProfile = {
   profileEmoji: string
 }
 
-const goalIcons: { [key: string]: JSX.Element } = {
-  weight_loss: <Scale className="w-6 h-6 text-yellow-500" />,
-  muscle_gain: <Dumbbell className="w-6 h-6 text-yellow-500" />,
-  endurance: <Activity className="w-6 h-6 text-yellow-500" />,
-  strength: <Dumbbell className="w-6 h-6 text-yellow-500" />,
-  flexibility: <Activity className="w-6 h-6 text-yellow-500" />,
-  overall_health: <Target className="w-6 h-6 text-yellow-500" />,
-}
-
 const defaultProfile: UserProfile = {
   name: '',
   username: '',
@@ -55,14 +49,6 @@ const defaultProfile: UserProfile = {
   bodyFatHistory: [],
   profileEmoji: '💪'
 }
-
-const emojiOptions = [
-  '💪', '🏋️', '🏃', '🧘', '🚴', '🏊', '🤸', // Fitness-related
-  '🐶', '🐱', '🦁', '🐯', '🐻', '🐼', '🐨', '🐷', '🐸', '🦊', '🐒', // Animals for personality
-  '🦅', '🦄', '🦋', '🐍', '🐢', '🐬', '🦜', '🐠', '🦓', '🐎', // More animals
-  '🎧', '📸', '🎮', '🏆', '⚽', '🏀', '🎸', '🎨', '🎤', '🚗', '🚴‍♀️', // Hobbies and lifestyle
-  '🌟', '🔥', '🌈', '✨', '💎', '🎯', '🌻', '🍀', '🎲' // Symbolic or aesthetic options
-];
 
 export default function ProfilePage() {
   const { user } = useAuth()
@@ -274,268 +260,40 @@ export default function ProfilePage() {
       <MainMenu />
       <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float ">Your GymGa.me Profile 👥</h1>
       
-      <div ref={profileCardRef} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <div className="bg-yellow-500 rounded-full p-3 text-4xl">
-              {profile.profileEmoji}
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">{profile.username || profile.name || 'New Hero'}</h2>
-              <p className="text-yellow-500">Level: {Math.floor(totalWorkouts / 10) + 1}</p>
-            </div>
-          </div>
-          <button
-            onClick={handleSaveProfileImage}
-            className="bg-yellow-500 text-gray-900 px-3 py-1 rounded-full hover:bg-yellow-400 transition-colors duration-200 flex items-center space-x-1 text-sm"
-          >
-            <Share2 className="w-4 h-4" />
-            <span>Share</span>
-          </button>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gray-700 rounded-lg p-3">
-            <p className="text-xs text-gray-400">Height</p>
-            <p className="text-lg font-semibold text-white">{profile.height || 0} cm</p>
-          </div>
-          <div className="bg-gray-700 rounded-lg p-3">
-            <p className="text-xs text-gray-400">Workouts Completed</p>
-            <p className="text-lg font-semibold text-white">{totalWorkouts}</p>
-          </div>
-          <div className="bg-gray-700 rounded-lg p-3">
-            <p className="text-xs text-gray-400">Total Weight Lifted</p>
-            <p className="text-lg font-semibold text-white">{totalWeightLifted.toLocaleString()} kg</p>
-          </div>
-          <div className="bg-gray-700 rounded-lg p-3">
-            <p className="text-xs text-gray-400">Current Weight</p>
-            <p className="text-lg font-semibold text-white">
-              {profile.weightHistory && profile.weightHistory.length > 0
-                ? `${profile.weightHistory[profile.weightHistory.length - 1].weight} kg`
-                : 'Not set'}
-            </p>
-          </div>
-        </div>
-        <div className="bg-gray-700 rounded-lg p-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-gray-400">Fitness Goal</p>
-            <p className="text-lg font-semibold text-white flex items-center">
-              {goalIcons[profile.fitnessGoal] || <Target className="w-5 h-5 text-yellow-500 mr-2" />}
-              <span className="ml-2">{(profile.fitnessGoal || '').replace('_', ' ') || 'Not set'}</span>
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-400">Activity Level</p>
-            <p className="text-lg font-semibold text-white">{profile.activityLevel || 'Not set'}</p>
-          </div>
-        </div>
+      <div ref={profileCardRef}>
+        <ProfileCard
+          profile={profile}
+          totalWorkouts={totalWorkouts}
+          totalWeightLifted={totalWeightLifted}
+          handleSaveProfileImage={handleSaveProfileImage}
+        />
       </div>
 
       {error && <div className="text-red-500 text-center mb-4" role="alert">{error}</div>}
-      <form onSubmit={handleSubmit} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
-        <h2 className="text-2xl font-bold mb-4 text-white">Edit Your Workout Log</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="name" className="block text-gray-300 font-bold mb-2">Hero Name (Your real name)</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={profile.name}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-yellow-300 bg-gray-700 text-white"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="username" className="block text-gray-300 font-bold mb-2">Current Username</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              value={profile.username}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-yellow-300 bg-gray-700 text-white"
-              disabled
-            />
-          </div>
-          <div>
-            <label htmlFor="newUsername" className="block text-gray-300 font-bold mb-2">New Username (Your unique GymGa.me ID)</label>
-            <input
-              type="text"
-              id="newUsername"
-              name="newUsername"
-              value={newUsername}
-              onChange={(e) => setNewUsername(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-yellow-300 bg-gray-700 text-white"
-            />
-            {usernameError && <p className="text-red-500 text-sm mt-1" role="alert">{usernameError}</p>}
-          </div>
-          <div>
-            <label htmlFor="age" className="block text-gray-300 font-bold mb-2">Age</label>
-            <input
-              type="number"
-              id="age"
-              name="age"
-              value={profile.age || ''}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-yellow-300 bg-gray-700 text-white"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="height" className="block text-gray-300 font-bold mb-2">Height (cm)</label>
-            <input
-              type="number"
-              id="height"
-              name="height"
-              value={profile.height || ''}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-yellow-300 bg-gray-700 text-white"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="gender" className="block text-gray-300 font-bold mb-2">Gender</label>
-            <select
-              id="gender"
-              name="gender"
-              value={profile.gender}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-yellow-300 bg-gray-700 text-white"
-              required
-            >
-              <option value="">Select gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label htmlFor="fitnessGoal" className="block text-gray-300 font-bold mb-2">Fitness Goal</label>
-            <select
-              id="fitnessGoal"
-              name="fitnessGoal"
-              value={profile.fitnessGoal}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-yellow-300 bg-gray-700 text-white"
-              required
-            >
-              <option value="">Select a goal</option>
-              <option value="weight_loss">Weight Loss</option>
-              <option value="muscle_gain">Muscle Gain</option>
-              <option value="endurance">Endurance</option>
-              <option value="strength">Strength</option>
-              <option value="flexibility">Flexibility</option>
-              <option value="overall_health">Overall Health</option>
-            </select>
-          </div>
-          <div>
-            <label htmlFor="activityLevel" className="block text-gray-300 font-bold mb-2">Activity Level</label>
-            <select
-              id="activityLevel"
-              name="activityLevel"
-              value={profile.activityLevel}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-yellow-300 bg-gray-700 text-white"
-              required
-            >
-              <option value="">Select activity level</option>
-              <option value="sedentary">Novice (little to no exercise)</option>
-              <option value="light">Apprentice (light exercise 1-3 days/week)</option>
-              <option value="moderate">Adept (moderate exercise 3-5 days/week)</option>
-              <option value="very">Expert (intense exercise 6-7 days/week)</option>
-              <option value="extra">Legendary (very intense exercise & physical job)</option>
-            </select>
-          </div>
-        </div>
-        <div className="mt-4">
-          <label htmlFor="profileEmoji" className="block text-gray-300 font-bold mb-2">Profile Emoji</label>
-          <div className="flex flex-wrap gap-2">
-            {emojiOptions.map((emoji) => (
-              <button
-                key={emoji}
-                type="button"
-                onClick={() => handleEmojiChange(emoji)}
-                className={`text-2xl p-2 rounded-full ${profile.profileEmoji === emoji ? 'bg-yellow-500' : 'bg-gray-700'} hover:bg-yellow-400 transition-colors duration-200`}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-        </div>
-        <button
-          type="submit"
-          className="w-full bg-yellow-500 text-gray-900 py-2 px-4 rounded-full hover:bg-yellow-400 focus:outline-none focus:ring focus:border-yellow-300 mt-4 transition-colors duration-200 font-bold"
-        >
-          Update Workout Log
-        </button>
-      </form>
+      
+      <EditProfileCard
+        profile={profile}
+        handleInputChange={handleInputChange}
+        handleSubmit={handleSubmit}
+        newUsername={newUsername}
+        setNewUsername={setNewUsername}
+        usernameError={usernameError}
+        handleEmojiChange={handleEmojiChange}
+      />
 
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
-        <h2 className="text-2xl font-bold mb-4 text-white">Weight Tracking</h2>
-        <div className="flex items-center mb-4">
-          <input
-            type="number"
-            value={newWeight}
-            onChange={(e) => setNewWeight(e.target.value === '' ? '' : Number(e.target.value))}
-            placeholder="Enter weight (kg)"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-yellow-300 bg-gray-700 text-white mr-2"
-          />
-          <button
-            onClick={handleAddWeight}
-            className="bg-yellow-500 text-gray-900 py-2 px-4 rounded-full hover:bg-yellow-400 focus:outline-none focus:ring focus:border-yellow-300 transition-colors duration-200 font-bold"
-          >
-            Log Weight
-          </button>
-        </div>
-        {profile.weightHistory && profile.weightHistory.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={profile.weightHistory}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="date" stroke="#9CA3AF" />
-              <YAxis stroke="#9CA3AF" />
-              <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', color: '#fff' }} />
-              <Legend />
-              <Line type="monotone" dataKey="weight" stroke="#EAB308" activeDot={{ r: 8 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
-          <p className="text-white text-center">No weight data available. Start logging your weight to see the chart!</p>
-        )}
-      </div>
+      <WeightTrackingCard
+        weightHistory={profile.weightHistory}
+        newWeight={newWeight}
+        setNewWeight={setNewWeight}
+        handleAddWeight={handleAddWeight}
+      />
 
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
-        <h2 className="text-2xl font-bold mb-4 text-white">Body Fat Tracking</h2>
-        <div className="flex items-center mb-4">
-          <input
-            type="number"
-            value={newBodyFat}
-            onChange={(e) => setNewBodyFat(e.target.value === '' ? '' : Number(e.target.value))}
-            placeholder="Enter body fat (%)"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-yellow-300 bg-gray-700 text-white mr-2"
-          />
-          <button
-            onClick={handleAddBodyFat}
-            className="bg-yellow-500 text-gray-900 py-2 px-4 rounded-full hover:bg-yellow-400 focus:outline-none focus:ring focus:border-yellow-300 transition-colors duration-200 font-bold flex items-center"
-          >
-            <Percent className="w-5 h-5 mr-2" />
-            Log Body Fat
-          </button>
-        </div>
-        {profile.bodyFatHistory && profile.bodyFatHistory.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={profile.bodyFatHistory}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="date" stroke="#9CA3AF" />
-              <YAxis stroke="#9CA3AF" />
-              <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', color: '#fff' }} />
-              <Legend />
-              <Line type="monotone" dataKey="bodyFat" stroke="#10B981" activeDot={{ r: 8 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
-          <p className="text-white text-center">No body fat data available. Start logging your body fat percentage to see the chart!</p>
-        )}
-      </div>
+      <BodyFatTrackingCard
+        bodyFatHistory={profile.bodyFatHistory}
+        newBodyFat={newBodyFat}
+        setNewBodyFat={setNewBodyFat}
+        handleAddBodyFat={handleAddBodyFat}
+      />
     </div>
   )
 }

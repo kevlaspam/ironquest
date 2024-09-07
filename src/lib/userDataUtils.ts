@@ -12,7 +12,8 @@ export async function initializeUserData(userId: string) {
     await setDoc(userProfileRef, {
       level: 1,
       workoutStreak: 0,
-      lastWorkoutDate: null
+      lastWorkoutDate: null,
+      username: null
     });
   } else {
     // Ensure workoutStreak exists and is a number
@@ -57,4 +58,18 @@ export async function addAchievement(userId: string, achievement: { id: string, 
   await updateDoc(userAchievementsRef, {
     achievements: arrayUnion(achievement)
   });
+}
+
+export async function getUsername(userId: string) {
+  const userProfileRef = doc(db, 'userProfiles', userId);
+  const userProfileDoc = await getDoc(userProfileRef);
+  if (userProfileDoc.exists()) {
+    return userProfileDoc.data().username;
+  }
+  return null;
+}
+
+export async function updateUsername(userId: string, newUsername: string) {
+  const userProfileRef = doc(db, 'userProfiles', userId);
+  await updateDoc(userProfileRef, { username: newUsername });
 }

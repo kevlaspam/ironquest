@@ -1,10 +1,82 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { MainMenu } from '../../components/MainMenu'
-import { Users, PlusSquare, History, BarChart2, Award, CheckSquare, User } from 'lucide-react'
+import { Users, PlusSquare, History, BarChart2, Award, CheckSquare, User, Dumbbell, Zap, Calendar } from 'lucide-react'
+import { useAuth } from '../../components/AuthProvider'
+import { db } from '../../lib/firebase'
+import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore'
 
 export default function Home() {
+  const { user } = useAuth()
+  const [stats, setStats] = useState({
+    totalWorkouts: 0,
+    totalWeightLifted: 0,
+    workoutStreak: 0,
+  })
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!user) return
+
+      try {
+        // Fetch total workouts
+        const workoutsQuery = query(collection(db, 'workouts'), where('userId', '==', user.uid))
+        const workoutsSnapshot = await getDocs(workoutsQuery)
+        const totalWorkouts = workoutsSnapshot.size
+
+        // Calculate total weight lifted
+        let totalWeightLifted = 0
+        workoutsSnapshot.forEach((doc) => {
+          const workout = doc.data()
+          workout.exercises?.forEach((exercise: any) => {
+            exercise.sets?.forEach((set: any) => {
+              totalWeightLifted += (set.weight || 0) * (set.reps || 0)
+            })
+          })
+        })
+
+        // Calculate workout streak
+        const streakQuery = query(
+          collection(db, 'workouts'),
+          where('userId', '==', user.uid),
+          orderBy('date', 'desc'),
+          limit(30) // Fetch last 30 days of workouts
+        )
+        const streakSnapshot = await getDocs(streakQuery)
+        let streak = 0
+        let lastWorkoutDate: Date | null = null
+
+        streakSnapshot.forEach((doc) => {
+          const workoutDate = doc.data().date.toDate()
+          if (!lastWorkoutDate) {
+            lastWorkoutDate = workoutDate
+            streak = 1
+          } else {
+            const dayDifference = Math.floor((lastWorkoutDate.getTime() - workoutDate.getTime()) / (1000 * 3600 * 24))
+            if (dayDifference === 1) {
+              streak++
+              lastWorkoutDate = workoutDate
+            } else {
+              return // Break the loop if streak is broken
+            }
+          }
+        })
+
+        setStats({
+          totalWorkouts,
+          totalWeightLifted,
+          workoutStreak: streak,
+        })
+      } catch (error) {
+        console.error('Error fetching stats:', error)
+      }
+    }
+
+    fetchStats()
+  }, [user])
+
   const pages = [
     { href: '/feed', label: 'Feed', icon: Users, description: 'View the social feed' },
     { href: '/workout/log', label: 'Log Workout', icon: PlusSquare, description: 'Record your latest workout' },
@@ -21,6 +93,35 @@ export default function Home() {
       <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float">
         Welcome to GymGa.me 🏋️‍♂️
       </h1>
+      
+      {/* User Stats */}
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
+        <h2 className="text-2xl font-bold mb-4 text-white">Your Stats</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-gray-700 rounded-lg p-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-400">Total Workouts</p>
+              <p className="text-2xl font-bold text-white">{stats.totalWorkouts}</p>
+            </div>
+            <Dumbbell className="w-8 h-8 text-yellow-500" />
+          </div>
+          <div className="bg-gray-700 rounded-lg p-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-400">Total Weight Lifted</p>
+              <p className="text-2xl font-bold text-white">{stats.totalWeightLifted.toLocaleString()} kg</p>
+            </div>
+            <Zap className="w-8 h-8 text-yellow-500" />
+          </div>
+          <div className="bg-gray-700 rounded-lg p-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-400">Workout Streak</p>
+              <p className="text-2xl font-bold text-white">{stats.workoutStreak} days</p>
+            </div>
+            <Calendar className="w-8 h-8 text-yellow-500" />
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {pages.map((page) => (
           <Link key={page.href} href={page.href} className="group">

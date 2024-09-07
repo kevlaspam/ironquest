@@ -1,5 +1,5 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { getFirestore, Firestore, doc, setDoc, getDoc } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
 
 // Your web app's Firebase configuration
@@ -24,4 +24,22 @@ app = getApps()[0];
 db = getFirestore(app);
 auth = getAuth(app);
 
-export { app, db, auth };
+function generateRandomUsername() {
+  return 'user_' + Math.random().toString(36).substr(2, 9);
+}
+
+async function setRandomUsername(userId: string) {
+  const randomUsername = generateRandomUsername();
+  const userRef = doc(db, 'userProfiles', userId);
+  
+  try {
+    const userDoc = await getDoc(userRef);
+    if (!userDoc.exists() || !userDoc.data().username) {
+      await setDoc(userRef, { username: randomUsername }, { merge: true });
+    }
+  } catch (error) {
+    console.error("Error setting random username:", error);
+  }
+}
+
+export { app, db, auth, setRandomUsername };

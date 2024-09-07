@@ -1,29 +1,27 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../components/AuthProvider'
 import { 
   collection, 
-  addDoc, 
   query, 
   orderBy, 
   limit, 
-  onSnapshot, 
+  getDocs,
   deleteDoc, 
   doc, 
-  serverTimestamp, 
-  Timestamp, 
   updateDoc, 
-  arrayUnion, 
-  arrayRemove, 
-  getDoc, 
-  where, 
-  setDoc,
-  FieldValue 
+  addDoc, 
+  serverTimestamp,
+  arrayUnion,
+  arrayRemove,
+  getDoc,
+  where,
+  setDoc
 } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import { MainMenu } from '../../components/MainMenu'
-import { Trash2, Send, Heart, MessageCircle, Smile } from 'lucide-react'
+import { Trash2, Send, Heart, MessageCircle, AlertCircle } from 'lucide-react'
 import { WorkoutCard } from '../../components/WorkoutCard'
 import { CommentSection } from '../../components/CommentSection'
 import { Toast } from '../../components/Toast'
@@ -32,7 +30,7 @@ import { formatDistanceToNow } from 'date-fns'
 type Workout = {
   id: string
   name: string
-  date: Timestamp
+  date: { seconds: number; nanoseconds: number }
   exercises: { name: string; sets: { reps: number; weight: number }[] }[]
   duration: number
 }
@@ -42,9 +40,9 @@ type Post = {
   content: string
   userId: string
   userName: string
-  createdAt: Timestamp | FieldValue | null
+  createdAt: { toDate: () => Date } | null
   likes: string[]
-  comments: { userId: string; userName: string; content: string; createdAt: Timestamp; likes: string[] }[]
+  comments: { userId: string; userName: string; content: string; createdAt: { toDate: () => Date }; likes: string[] }[]
   workoutId?: string
   workout?: Workout
   mood?: string
@@ -83,29 +81,13 @@ export default function Feed() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
-  useEffect(() => {
-    if (!db || !user) return
-  
-    const fetchUserProfile = async () => {
-      const profileDoc = await getDoc(doc(db, 'userProfiles', user.uid))
-      if (profileDoc.exists()) {
-        setUserProfile(profileDoc.data() as UserProfile)
-      } else {
-        const defaultProfile: UserProfile = {
-          username: user.displayName?.replace(/\s+/g, '').toLowerCase() || 'user',
-          name: user.displayName || 'Anonymous',
-          profileEmoji: '💪'
-        }
-        await setDoc(doc(db, 'userProfiles', user.uid), defaultProfile)
-        setUserProfile(defaultProfile)
-      }
-    }
-  
-    fetchUserProfile()
-  
-    const postsQuery = query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(50))
-    const unsubscribePosts = onSnapshot(postsQuery, async (querySnapshot) => {
-      const postsData = await Promise.all(querySnapshot.docs.map(async (document) => {
+  const fetchPosts = useCallback(async () => {
+    if (!user || !db) return
+
+    try {
+      const postsQuery = query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(50))
+      const postsSnapshot = await getDocs(postsQuery)
+      const postsData = await Promise.all(postsSnapshot.docs.map(async (document) => {
         const postData = document.data() as Post
         postData.id = document.id
         
@@ -128,27 +110,44 @@ export default function Feed() {
         return postData
       }))
       setPosts(postsData)
-      setLoading(false)
-    }, (err) => {
+    } catch (err) {
       console.error('Error fetching posts:', err)
       setError('Failed to fetch posts. Please try again later.')
+    } finally {
       setLoading(false)
-    })
+    }
+  }, [user])
+
+  useEffect(() => {
+    if (!db || !user) return
+  
+    const fetchUserProfile = async () => {
+      const profileDoc = await getDoc(doc(db, 'userProfiles', user.uid))
+      if (profileDoc.exists()) {
+        setUserProfile(profileDoc.data() as UserProfile)
+      } else {
+        const defaultProfile: UserProfile = {
+          username: user.displayName?.replace(/\s+/g, '').toLowerCase() || 'user',
+          name: user.displayName || 'Anonymous',
+          profileEmoji: '💪'
+        }
+        await setDoc(doc(db, 'userProfiles', user.uid), defaultProfile)
+        setUserProfile(defaultProfile)
+      }
+    }
+  
+    fetchUserProfile()
+    fetchPosts()
 
     const workoutsQuery = query(collection(db, 'workouts'), where('userId', '==', user.uid), orderBy('date', 'desc'), limit(10))
-    const unsubscribeWorkouts = onSnapshot(workoutsQuery, (querySnapshot) => {
+    getDocs(workoutsQuery).then((querySnapshot) => {
       const workoutsData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Workout[]
       setWorkouts(workoutsData)
     })
-
-    return () => {
-      unsubscribePosts()
-      unsubscribeWorkouts()
-    }
-  }, [user])
+  }, [user, fetchPosts])
 
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -169,23 +168,14 @@ export default function Feed() {
         postData.mood = selectedMood
       }
   
-      console.log('Attempting to create post with data:', postData)
-  
       const postRef = await addDoc(collection(db, 'posts'), postData)
   
-      console.log('Post created successfully with ID:', postRef.id)
-  
       if (selectedWorkout) {
-        console.log('Selected workout ID:', selectedWorkout)
         const workoutDoc = await getDoc(doc(db, 'workouts', selectedWorkout))
         if (workoutDoc.exists()) {
           const workoutData = workoutDoc.data() as Workout
-          console.log('Workout data:', workoutData)
           await setDoc(doc(db, 'posts', postRef.id, 'workouts', selectedWorkout), workoutData)
           await updateDoc(postRef, { workoutId: selectedWorkout })
-          console.log('Workout added to post successfully')
-        } else {
-          console.log('Selected workout does not exist')
         }
       }
   
@@ -194,6 +184,7 @@ export default function Feed() {
       setPreviewWorkout(null)
       setSelectedMood(null)
       setToast({ message: 'Post created successfully!', type: 'success' })
+      fetchPosts()
     } catch (err) {
       console.error('Error adding post:', err)
       setToast({ message: 'Failed to create post. Please try again.', type: 'error' })
@@ -206,6 +197,7 @@ export default function Feed() {
     try {
       await deleteDoc(doc(db, 'posts', postId))
       setToast({ message: 'Post deleted successfully!', type: 'success' })
+      fetchPosts()
     } catch (err) {
       console.error('Error deleting post:', err)
       setToast({ message: 'Failed to delete post. Please try again.', type: 'error' })
@@ -232,6 +224,7 @@ export default function Feed() {
             likes: arrayUnion(user.uid)
           })
         }
+        fetchPosts()
       }
     } catch (err) {
       console.error('Error updating like:', err)
@@ -248,13 +241,14 @@ export default function Feed() {
         userId: user.uid,
         userName: userProfile?.username || 'Anonymous',
         content: commentContent.trim(),
-        createdAt: serverTimestamp() as FieldValue,
+        createdAt: serverTimestamp(),
         likes: []
       }
       await updateDoc(postRef, {
         comments: arrayUnion(newComment)
       })
       setToast({ message: 'Comment added successfully!', type: 'success' })
+      fetchPosts()
     } catch (err) {
       console.error('Error adding comment:', err)
       setToast({ message: 'Failed to add comment. Please try again.', type: 'error' })
@@ -285,6 +279,7 @@ export default function Feed() {
           
           comment.likes = likes
           await updateDoc(postRef, { comments: updatedComments })
+          fetchPosts()
         }
       }
     } catch (err) {
@@ -304,11 +299,21 @@ export default function Feed() {
   }
 
   if (loading) {
-    return <div className="text-center mt-10 text-white">Loading...</div>
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-yellow-500"></div>
+      </div>
+    )
   }
 
   if (error) {
-    return <div className="text-center mt-10 text-red-500">{error}</div>
+    return (
+      <div className="text-red-500 text-center p-8 bg-gray-800 rounded-xl shadow-lg">
+        <AlertCircle className="w-16 h-16 mx-auto mb-4" />
+        <p className="text-xl font-semibold mb-2">Oops! Something went wrong.</p>
+        <p>{error}</p>
+      </div>
+    )
   }
 
   return (
@@ -333,7 +338,7 @@ export default function Feed() {
             <option value="">Select a workout</option>
             {workouts.map((workout) => (
               <option key={workout.id} value={workout.id}>
-                {workout.name} - {workout.date.toDate().toLocaleDateString()}
+                {workout.name} - {new Date(workout.date.seconds * 1000).toLocaleDateString()}
               </option>
             ))}
           </select>
