@@ -7,31 +7,19 @@ import { collection, addDoc, serverTimestamp, query, where, getDocs, deleteDoc, 
 import { MainMenu } from '../../../components/MainMenu'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import { Clipboard, ChevronRight, X, Plus, Save, Dumbbell, Play, Pause, RotateCcw, Trash2, ChevronUp, ChevronDown, Check } from 'lucide-react'
-
-type Exercise = {
-  name: string
-  sets: { reps: number; weight: number; completed: boolean }[]
-}
+import { Clipboard, ChevronRight, Save, Dumbbell, Trash2, X } from 'lucide-react'
+import { useWorkout } from '../../../components/WorkoutContext'
+import { RestTimer } from '../../../components/RestTimer'
+import { WorkoutCardTracker } from '../../../components/WorkoutCardTracker'
+import { useRouter } from 'next/navigation'
 
 type Workout = {
   id?: string
   name: string
-  exercises: Exercise[]
-}
-
-const exerciseOptions = {
-  Chest: ['Barbell Bench Press', 'Incline Dumbbell Press', 'Decline Bench Press', 'Chest Dips', 'Push-Ups', 'Cable Flyes', 'Pec Deck Machine', 'Landmine Press', 'Smith Machine Bench Press'],
-  Back: ['Lat Pulldown', 'Seated Cable Row', 'Bent Over Barbell Row', 'T-Bar Row', 'Pull-Ups', 'Chin-Ups', 'Face Pulls', 'Straight Arm Pulldown', 'Single-Arm Dumbbell Row'],
-  Shoulders: ['Overhead Barbell Press', 'Dumbbell Shoulder Press', 'Arnold Press', 'Lateral Raises', 'Front Raises', 'Reverse Flyes', 'Upright Rows', 'Shrugs'],
-  Biceps: ['Barbell Curl', 'Dumbbell Curl', 'Hammer Curls', 'Preacher Curls', 'Concentration Curls', 'Cable Curls', 'Incline Dumbbell Curls', 'Spider Curls'],
-  Triceps: ['Tricep Pushdowns', 'Overhead Tricep Extension', 'Skull Crushers', 'Close-Grip Bench Press', 'Diamond Push-Ups', 'Tricep Dips', 'Cable Tricep Kickbacks'],
-  Legs: ['Barbell Back Squat', 'Front Squat', 'Leg Press', 'Romanian Deadlift', 'Lunges', 'Leg Extensions', 'Leg Curls', 'Calf Raises', 'Hip Thrusts', 'Bulgarian Split Squats'],
-  Abs: ['Crunches', 'Planks', 'Russian Twists', 'Leg Raises', 'Ab Wheel Rollouts', 'Hanging Leg Raises', 'Cable Crunches', 'Mountain Climbers'],
-  Compound: ['Deadlifts', 'Power Cleans', 'Barbell Rows', 'Dumbbell Thrusters'],
-  Machines: ['Chest Press Machine', 'Shoulder Press Machine', 'Leg Press Machine', 'Seated Leg Curl Machine', 'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Tricep Pushdown Machine'],
-  Bodyweight: ['Push-Ups', 'Pull-Ups', 'Dips', 'Squats', 'Lunges', 'Burpees', 'Mountain Climbers', 'Plank', 'Side Plank', 'Glute Bridges', 'Step-Ups'],
-  Cable: ['Cable Crossovers', 'Cable Woodchoppers', 'Cable Crunches', 'Cable Lateral Raises', 'Cable Face Pulls', 'Cable Tricep Pushdowns', 'Cable Bicep Curls']
+  exercises: {
+    name: string
+    sets: { reps: number; weight: number; completed: boolean }[]
+  }[]
 }
 
 const preFilledWorkouts = {
@@ -117,18 +105,23 @@ const preFilledWorkouts = {
 
 export default function LogWorkout() {
   const { user } = useAuth()
-  const [exercises, setExercises] = useState<Exercise[]>([{ name: '', sets: [{ reps: 0, weight: 0, completed: false }] }])
-  const [timer, setTimer] = useState(0)
-  const [isTimerRunning, setIsTimerRunning] = useState(false)
-  const [workoutStarted, setWorkoutStarted] = useState(false)
-  const [restTimer, setRestTimer] = useState(0)
-  const [isRestTimerRunning, setIsRestTimerRunning] = useState(false)
+  const {
+    exercises,
+    setExercises,
+    timer,
+    setTimer,
+    isTimerRunning,
+    setIsTimerRunning,
+    workoutStarted,
+    setWorkoutStarted,
+    currentWorkoutName,
+    setCurrentWorkoutName,
+    clearWorkout
+  } = useWorkout()
+
   const [userWorkouts, setUserWorkouts] = useState<Workout[]>([])
   const [newWorkoutName, setNewWorkoutName] = useState('')
-  const [restDuration, setRestDuration] = useState(60)
-  const [currentWorkoutName, setCurrentWorkoutName]
- = useState('')
-  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     if (user) {
@@ -146,26 +139,7 @@ export default function LogWorkout() {
     }
 
     return () => clearInterval(interval)
-  }, [isTimerRunning])
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout
-
-    if (isRestTimerRunning) {
-      interval = setInterval(() => {
-        setRestTimer((prevTimer) => {
-          if (prevTimer > 0) {
-            return prevTimer - 1
-          } else {
-            setIsRestTimerRunning(false)
-            return 0
-          }
-        })
-      }, 1000)
-    }
-
-    return () => clearInterval(interval)
-  }, [isRestTimerRunning])
+  }, [isTimerRunning, setTimer])
 
   const fetchUserWorkouts = async () => {
     if (!user) return
@@ -184,6 +158,7 @@ export default function LogWorkout() {
     setIsTimerRunning(true)
     if (workout) {
       setExercises(workout.exercises)
+      setCurrentWorkoutName(workout.name)
     }
   }
 
@@ -191,56 +166,6 @@ export default function LogWorkout() {
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
-  }
-
-  const handleExerciseChange = (exerciseIndex: number, bodyPart: string, exerciseName: string) => {
-    const newExercises = [...exercises]
-    newExercises[exerciseIndex].name = exerciseName
-    setExercises(newExercises)
-    setSelectedBodyPart(null)
-  }
-
-  const handleSetChange = (exerciseIndex: number, setIndex: number, field: 'reps' | 'weight', value: number) => {
-    const newExercises = [...exercises]
-    newExercises[exerciseIndex].sets[setIndex][field] = value
-    setExercises(newExercises)
-  }
-
-  const toggleSetCompletion = (exerciseIndex: number, setIndex: number) => {
-    const newExercises = [...exercises]
-    newExercises[exerciseIndex].sets[setIndex].completed = !newExercises[exerciseIndex].sets[setIndex].completed
-    setExercises(newExercises)
-  }
-
-  const addSet = (exerciseIndex: number) => {
-    const newExercises = [...exercises]
-    newExercises[exerciseIndex].sets.push({ reps: 0, weight: 0, completed: false })
-    setExercises(newExercises)
-  }
-
-  const removeSet = (exerciseIndex: number, setIndex: number) => {
-    const newExercises = [...exercises]
-    newExercises[exerciseIndex].sets.splice(setIndex, 1)
-    setExercises(newExercises)
-  }
-
-  const addExercise = () => {
-    setExercises([...exercises, { name: '', sets: [{ reps: 0, weight: 0, completed: false }] }])
-  }
-
-  const removeExercise = (index: number) => {
-    const newExercises = [...exercises]
-    newExercises.splice(index, 1)
-    setExercises(newExercises)
-  }
-
-  const startRestTimer = () => {
-    setRestTimer(restDuration)
-    setIsRestTimerRunning(true)
-  }
-
-  const adjustRestDuration = (adjustment: number) => {
-    setRestDuration(prevDuration => Math.max(30, prevDuration + adjustment))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -266,10 +191,7 @@ export default function LogWorkout() {
         date: serverTimestamp(),
       })
       toast.success('Workout logged successfully!')
-      setExercises([{ name: '', sets: [{ reps: 0, weight: 0, completed: false }] }])
-      setTimer(0)
-      setWorkoutStarted(false)
-      setCurrentWorkoutName('')
+      clearWorkout()
     } catch (error) {
       console.error('Error adding document: ', error)
       toast.error('Failed to log workout. Please try again.')
@@ -316,6 +238,11 @@ export default function LogWorkout() {
       console.error('Error deleting workout: ', error)
       toast.error('Failed to delete workout. Please try again.')
     }
+  }
+
+  const handleCancel = () => {
+    clearWorkout()
+    router.push('/workout/log')
   }
 
   return (
@@ -386,15 +313,7 @@ export default function LogWorkout() {
                   <div>
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-xl font-semibold text-white truncate" title={workout.name}>{workout.name}</h2>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteWorkout(workout.id!);
-                        }} 
-                        className="text-red-500 hover:text-red-600"
-                      >
-                        <Trash2 size={20} />
-                      </button>
+                      <Dumbbell className="w-6 h-6 text-yellow-500" />
                     </div>
                     <ul className="text-gray-300 text-sm mb-4 list-disc list-inside">
                       {workout.exercises.slice(0, 3).map((exercise, index) => (
@@ -407,7 +326,18 @@ export default function LogWorkout() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-400">{workout.exercises.length} exercises</span>
-                    <ChevronRight className="w-5 h-5 text-yellow-500" />
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          deleteWorkout(workout.id!)
+                        }}
+                        className="text-red-500 hover:text-red-600 transition-colors duration-200"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                      <ChevronRight className="w-5 h-5 text-yellow-500" />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -432,146 +362,24 @@ export default function LogWorkout() {
               <h3 className="text-lg font-semibold text-white">Workout Timer</h3>
               <p className="text-3xl font-bold text-yellow-500">{formatTime(timer)}</p>
             </div>
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold text-white mb-2">Rest Timer</h3>
-              <div className="flex items-center space-x-4">
-                <div className="flex-1 bg-gray-700 h-4 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-yellow-500 transition-all duration-1000 ease-linear"
-                    style={{ width: `${(restTimer / restDuration) * 100}%` }}
-                  ></div>
-                </div>
-                <p className="text-2xl font-bold text-yellow-500 w-20 text-center">{formatTime(restTimer)}</p>
-                {isRestTimerRunning ? (
-                  <button onClick={() => setIsRestTimerRunning(false)} className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors">
-                    <Pause size={20} />
-                  </button>
-                ) : (
-                  <button onClick={startRestTimer} className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors">
-                    <Play size={20} />
-                  </button>
-                )}
-                <button onClick={() => setRestTimer(restDuration)} className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors">
-                  <RotateCcw size={20} />
-                </button>
-              </div>
-            </div>
-            <div className="flex justify-between items-center mt-4">
-              <span className="text-white">Rest Duration: {formatTime(restDuration)}</span>
-              <div className="flex items-center space-x-2">
-                <button onClick={() => adjustRestDuration(-30)} className="bg-gray-700 text-white p-2 rounded-full hover:bg-gray-600 transition-colors">
-                  <ChevronDown size={20} />
-                </button>
-                <button onClick={() => adjustRestDuration(30)} className="bg-gray-700 text-white p-2 rounded-full hover:bg-gray-600 transition-colors">
-                  <ChevronUp size={20} />
-                </button>
-              </div>
-            </div>
           </div>
 
+          <RestTimer />
+
           <form onSubmit={handleSubmit} className="space-y-6">
-            {exercises.map((exercise, exerciseIndex) => (
-              <div key={exerciseIndex} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
-                <div className="flex justify-between items-center mb-4">
-                  <div className="relative w-2/3">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedBodyPart(selectedBodyPart === exerciseIndex.toString() ? null : exerciseIndex.toString())}
-                      className="bg-gray-700 text-white rounded-lg p-2 w-full text-left flex justify-between items-center"
-                    >
-                      {exercise.name || "Select an exercise"}
-                      <ChevronDown size={20} />
-                    </button>
-                    {selectedBodyPart === exerciseIndex.toString() && (
-                      <div className="absolute z-10 w-full mt-1 bg-gray-800 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                        {Object.entries(exerciseOptions).map(([bodyPart, exercises]) => (
-                          <div key={bodyPart}>
-                            <div className="sticky top-0 bg-gray-900 px-4 py-2 font-semibold text-yellow-500">
-                              {bodyPart}
-                            </div>
-                            {exercises.map((exerciseName) => (
-                              <button
-                                key={exerciseName}
-                                type="button"
-                                onClick={() => handleExerciseChange(exerciseIndex, bodyPart, exerciseName)}
-                                className="block w-full text-left px-4 py-2 text-white hover:bg-gray-700"
-                              >
-                                {exerciseName}
-                              </button>
-                            ))}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeExercise(exerciseIndex)}
-                    className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-                <div className="space-y-4">
-                  {exercise.sets.map((set, setIndex) => (
-                    <div key={setIndex} className="flex items-center space-x-2">
-                      <span className="text-white w-16">Set {setIndex + 1}</span>
-                      <div className="flex-1 flex items-center space-x-2 bg-gray-700 rounded-lg p-2">
-                        <input
-                          type="number"
-                          value={set.reps}
-                          onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'reps', parseInt(e.target.value))}
-                          className="bg-transparent text-white w-16 text-center focus:outline-none"
-                          placeholder="Reps"
-                        />
-                        <span className="text-gray-400">x</span>
-                        <input
-                          type="number"
-                          value={set.weight}
-                          onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', parseInt(e.target.value))}
-                          className="bg-transparent text-white w-16 text-center focus:outline-none"
-                          placeholder="Weight"
-                        />
-                        <span className="text-gray-400">kg</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => toggleSetCompletion(exerciseIndex, setIndex)}
-                        className={`p-2 rounded-full transition-colors ${set.completed ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-700 hover:bg-gray-600'}`}
-                      >
-                        <Check size={20} className="text-white" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeSet(exerciseIndex, setIndex)}
-                        className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
-                      >
-                        <X size={20} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => addSet(exerciseIndex)}
-                  className="mt-4 bg-yellow-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors duration-200"
-                >
-                  Add Set
-                </button>
-              </div>
-            ))}
-            <div className="flex justify-between">
+            <WorkoutCardTracker />
+            <div className="flex justify-end space-x-4">
               <button
                 type="button"
-                onClick={addExercise}
-                className="bg-yellow-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors duration-200 flex items-center"
+                onClick={handleCancel}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-400 transition-colors duration-200 flex items-center justify-center"
               >
-                <Plus size={20} className="mr-2" />
-                Add Exercise
+                <X size={20} className="mr-2" />
+                Cancel Workout
               </button>
               <button
                 type="submit"
-                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-400 transition-colors duration-200 flex items-center"
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-400 transition-colors duration-200 flex items-center justify-center"
               >
                 <Save size={20} className="mr-2" />
                 Log Workout
@@ -580,7 +388,7 @@ export default function LogWorkout() {
           </form>
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
             <h2 className="text-xl font-semibold text-white mb-4">Save Workout as Template</h2>
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-2">
               <input
                 type="text"
                 value={newWorkoutName}
@@ -590,7 +398,7 @@ export default function LogWorkout() {
               />
               <button
                 onClick={saveWorkout}
-                className="bg-yellow-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors duration-200 flex items-center"
+                className="bg-yellow-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors duration-200 flex items-center justify-center"
               >
                 <Save size={20} className="mr-2" />
                 Save
