@@ -5,7 +5,7 @@ import { getAuth, Auth } from 'firebase/auth';
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDGJqKkzdbC2NeI6hIPsPNNhAHuMutuDjE",
-  authDomain: "gymga.me",
+  authDomain: "mygymgame.firebaseapp.com",
   projectId: "mygymgame",
   storageBucket: "mygymgame.appspot.com",
   messagingSenderId: "388540703810",
