@@ -23,7 +23,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import { MainMenu } from '../../components/MainMenu'
-import { Trash2, Send, Heart, MessageCircle, AlertCircle } from 'lucide-react'
+import { Dumbbell, Trash2, Send, Heart, MessageCircle, AlertCircle } from 'lucide-react'
 import { WorkoutCard } from '../../components/WorkoutCard'
 import { CommentSection } from '../../components/CommentSection'
 import { Toast } from '../../components/Toast'
@@ -309,7 +309,7 @@ export default function Feed() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <MainMenu />
-      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float">Social Feed 📢</h1>
+      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center">Social Feed</h1>
       
       {loading && <LoadingSpinner />}
 
@@ -317,64 +317,76 @@ export default function Feed() {
 
       {!loading && !error && (
         <>
-          <form onSubmit={handlePostSubmit} className="mb-8 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
-            <textarea
-              value={newPost}
-              onChange={(e) => setNewPost(e.target.value)}
-              placeholder="Share your workout or fitness thoughts..."
-              className="w-full p-2 rounded-md bg-gray-700 text-white border-2 border-gray-600 focus:border-yellow-500 focus:outline-none transition-colors duration-200"
-              rows={4}
-            />
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <select
-                value={selectedWorkout || ''}
-                onChange={(e) => handleWorkoutSelect(e.target.value)}
-                className="p-2 rounded-md bg-gray-700 text-white border-2 border-gray-600 focus:border-yellow-500 focus:outline-none transition-colors duration-200"
-              >
-                <option value="">Select a workout</option>
-                {workouts.map((workout) => (
-                  <option key={workout.id} value={workout.id}>
-                    {workout.name} - {workout.date.toDate().toLocaleDateString()}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={selectedMood || ''}
-                onChange={(e) => setSelectedMood(e.target.value)}
-                className="p-2 rounded-md bg-gray-700 text-white border-2 border-gray-600 focus:border-yellow-500 focus:outline-none transition-colors duration-200"
-              >
-                <option value="">Select mood</option>
-                {moodOptions.map((mood) => (
-                  <option key={mood.text} value={mood.emoji}>
-                    {mood.text} {mood.emoji}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="submit"
-                className="bg-yellow-500 text-gray-900 px-4 py-2 rounded-full hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transition-colors duration-200 flex items-center"
-              >
-                <Send className="w-5 h-5 mr-2" />
-                Post
-              </button>
-            </div>
-            {previewWorkout && (
-              <div className="mt-4">
-                <WorkoutCard workout={previewWorkout} />
+          <div className="mb-8 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl shadow-lg p-6 border-2 border-yellow-500">
+            <form onSubmit={handlePostSubmit}>
+              <textarea
+                value={newPost}
+                onChange={(e) => setNewPost(e.target.value)}
+                placeholder="Share your workout or fitness thoughts..."
+                className="w-full p-3 mb-4 bg-gray-700 text-white border border-gray-600 focus:border-yellow-500 rounded-lg resize-none"
+                rows={3}
+              />
+              <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                <select
+                  value={selectedWorkout || ''}
+                  onChange={(e) => {
+                    setSelectedWorkout(e.target.value)
+                    const workout = workouts.find(w => w.id === e.target.value)
+                    setPreviewWorkout(workout || null)
+                  }}
+                  className="w-full sm:w-1/2 p-2 bg-gray-700 text-white border border-gray-600 focus:border-yellow-500 rounded-lg"
+                >
+                  <option value="">Select workout</option>
+                  {workouts.map((workout) => (
+                    <option key={workout.id} value={workout.id}>
+                      {workout.name} - {workout.date.toDate().toLocaleDateString()}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={selectedMood || ''}
+                  onChange={(e) => setSelectedMood(e.target.value)}
+                  className="w-full sm:w-1/2 p-2 bg-gray-700 text-white border border-gray-600 focus:border-yellow-500 rounded-lg"
+                >
+                  <option value="">Select mood</option>
+                  {moodOptions.map((mood) => (
+                    <option key={mood.emoji} value={mood.emoji}>
+                      {mood.emoji} {mood.text}
+                    </option>
+                  ))}
+                </select>
               </div>
-            )}
-          </form>
+              {previewWorkout && (
+                <div className="mb-4">
+                  <WorkoutCard workout={previewWorkout} />
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  {selectedWorkout && <Dumbbell className="text-yellow-500" />}
+                  {selectedMood && <span className="text-2xl">{selectedMood}</span>}
+                </div>
+                <button
+                  type="submit"
+                  className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-6 py-2 rounded-full transition-colors duration-200 flex items-center"
+                >
+                  <Send className="w-5 h-5 mr-2" />
+                  Post
+                </button>
+              </div>
+            </form>
+          </div>
           
           <div className="space-y-8">
             {posts.map((post) => (
-              <div key={post.id} className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 border-4 border-yellow-500">
+              <div key={post.id} className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl shadow-lg p-6 border-2 border-yellow-500">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-10 h-10 rounded-full bg-yellow-500 flex items-center justify-center text-2xl">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 rounded-full bg-yellow-500 flex items-center justify-center text-2xl">
                       {post.userProfileEmoji}
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">@{post.userName}</h3>
+                      <h3 className="text-xl font-bold text-white">@{post.userName}</h3>
                       <p className="text-sm text-gray-400">
                         {post.createdAt && 'toDate' in post.createdAt
                           ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true })
@@ -393,7 +405,7 @@ export default function Feed() {
                 </div>
                 <p className="text-white mb-4">{post.content}</p>
                 {post.mood && (
-                  <span className="inline-block bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold mr-2 mb-2">
+                  <span className="inline-block bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold mr-2 mb-4">
                     {post.mood} {moodOptions.find(m => m.emoji === post.mood)?.text}
                   </span>
                 )}
@@ -405,15 +417,15 @@ export default function Feed() {
                 <div className="flex items-center space-x-4 mb-4">
                   <button
                     onClick={() => handleLikePost(post.id)}
-                    className={`flex items-center space-x-1 ${
+                    className={`flex items-center space-x-2 ${
                       post.likes?.includes(user.uid) ? 'text-red-500' : 'text-gray-400'
                     } hover:text-red-500 transition-colors duration-200`}
                   >
-                    <Heart className="w-5 h-5" />
+                    <Heart className="w-6 h-6" />
                     <span>{post.likes?.length || 0}</span>
                   </button>
-                  <div className="flex items-center space-x-1 text-gray-400">
-                    <MessageCircle className="w-5 h-5" />
+                  <div className="flex items-center space-x-2 text-gray-400">
+                    <MessageCircle className="w-6 h-6" />
                     <span>{post.comments?.length || 0}</span>
                   </div>
                 </div>
