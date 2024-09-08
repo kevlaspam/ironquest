@@ -91,6 +91,127 @@ const preFilledWorkouts = {
       { name: 'Plank', sets: [{ reps: 30, weight: 0, completed: false }, { reps: 30, weight: 0, completed: false }, { reps: 30, weight: 0, completed: false }] },
     ]
   },
+  absCore: {
+    name: 'Abs & Core',
+    icon: '🧘',
+    exercises: [
+      { name: 'Crunches', sets: [{ reps: 15, weight: 0, completed: false }, { reps: 15, weight: 0, completed: false }, { reps: 15, weight: 0, completed: false }] },
+      { name: 'Russian Twists', sets: [{ reps: 20, weight: 0, completed: false }, { reps: 20, weight: 0, completed: false }, { reps: 20, weight: 0, completed: false }] },
+      { name: 'Leg Raises', sets: [{ reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }] },
+      { name: 'Plank', sets: [{ reps: 30, weight: 0, completed: false }, { reps: 30, weight: 0, completed: false }, { reps: 30, weight: 0, completed: false }] },
+      { name: 'Mountain Climbers', sets: [{ reps: 20, weight: 0, completed: false }, { reps: 20, weight: 0, completed: false }, { reps: 20, weight: 0, completed: false }] },
+    ]
+  },
+  crossfitWOD: {
+    name: 'CrossFit WOD',
+    icon: '🏋️‍♂️',
+    exercises: [
+      { name: 'Burpees', sets: [{ reps: 20, weight: 0, completed: false }] },
+      { name: 'Kettlebell Swings', sets: [{ reps: 30, weight: 0, completed: false }] },
+      { name: 'Box Jumps', sets: [{ reps: 20, weight: 0, completed: false }] },
+      { name: 'Thrusters', sets: [{ reps: 15, weight: 0, completed: false }] },
+      { name: 'Pull-Ups', sets: [{ reps: 10, weight: 0, completed: false }] },
+    ]
+  },
+  calisthenicsBasic: {
+    name: 'Calisthenics Basic',
+    icon: '🤸',
+    exercises: [
+      { name: 'Push-Ups', sets: [{ reps: 15, weight: 0, completed: false }, { reps: 15, weight: 0, completed: false }, { reps: 15, weight: 0, completed: false }] },
+      { name: 'Pull-Ups', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'Dips', sets: [{ reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }, { reps: 12, weight: 0, completed: false }] },
+      { name: 'Pistol Squats', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'L-Sit Hold', sets: [{ reps: 20, weight: 0, completed: false }, { reps: 20, weight: 0, completed: false }, { reps: 20, weight: 0, completed: false }] },
+    ]
+  },
+  calisthenicsAdvanced: {
+    name: 'Calisthenics Advanced',
+    icon: '🏆',
+    exercises: [
+      { name: 'Muscle-Ups', sets: [{ reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }] },
+      { name: 'Handstand Push-Ups', sets: [{ reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }, { reps: 8, weight: 0, completed: false }] },
+      { name: 'Front Lever Hold', sets: [{ reps: 15, weight: 0, completed: false }, { reps: 15, weight: 0, completed: false }, { reps: 15, weight: 0, completed: false }] },
+      { name: 'Planche Progressions', sets: [{ reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }] },
+      { name: 'One-Arm Pull-Up Progressions', sets: [{ reps: 3, weight: 0, completed: false }, { reps: 3, weight: 0, completed: false }, { reps: 3, weight: 0, completed: false }] },
+    ]
+  },
+  functionalFitness: {
+    name: 'Functional Fitness',
+    icon: '🔄',
+    exercises: [
+      { name: 'Kettlebell Swings', sets: [{ reps: 20, weight: 0, completed: false }, { reps: 20, weight: 0, completed: false }, { reps: 20, weight: 0, completed: false }] },
+      { name: 'Turkish Get-Ups', sets: [{ reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }] },
+      { name: 'Battle Rope Slams', sets: [{ reps: 30, weight: 0, completed: false }, { reps: 30, weight: 0, completed: false }, { reps: 30, weight: 0, completed: false }] },
+      { name: 'Medicine Ball Slams', sets: [{ reps: 15, weight: 0, completed: false }, { reps: 15, weight: 0, completed: false }, { reps: 15, weight: 0, completed: false }] },
+      { name: 'Farmers Walks', sets: [{ reps: 40, weight: 0, completed: false }, { reps: 40, weight: 0, completed: false }, { reps: 40, weight: 0, completed: false }] },
+    ]
+  },
+  powerlifting: {
+    name: 'Powerlifting',
+    icon: '🏋️‍♀️',
+    exercises: [
+      { name: 'Barbell Back Squat', sets: [{ reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }] },
+      { name: 'Bench Press', sets: [{ reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }] },
+      { name: 'Deadlift', sets: [{ reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }] },
+      { name: 'Overhead Press', sets: [{ reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }] },
+      { name: 'Barbell Rows', sets: [{ reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }] },
+    ]
+  },
+  olympicWeightlifting: {
+    name: 'Olympic Weightlifting',
+    icon: '🏅',
+    exercises: [
+      { name: 'Clean and Jerk', sets: [{ reps: 3, weight: 0, completed: false }, { reps: 3, weight: 0, completed: false }, { reps: 3, weight: 0, completed: false }] },
+      { name: 'Snatch', sets: [{ reps: 3, weight: 0, completed: false }, { reps: 3, weight: 0, completed: false }, { reps: 3, weight: 0, completed: false }] },
+      { name: 'Front Squat', sets: [{ reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }] },
+      { name: 'Overhead Squat', sets: [{ reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }] },
+      { name: 'Clean Pulls', sets: [{ reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }, { reps: 5, weight: 0, completed: false }] },
+    ]
+  },
+  hiit: {
+    name: 'High Intensity Interval Training',
+    icon: '🔥',
+    exercises: [
+      { name: 'Burpees', sets: [{ reps: 20, weight: 0, completed: false }] },
+      { name: 'Mountain Climbers', sets: [{ reps: 30, weight: 0, completed: false }] },
+      { name: 'Jump Squats', sets: [{ reps: 15, weight: 0, completed: false }] },
+      { name: 'High Knees', sets: [{ reps: 40, weight: 0, completed: false }] },
+      { name: 'Plank Jacks', sets: [{ reps: 20, weight: 0, completed: false }] },
+    ]
+  },
+  yogaFlow: {
+    name: 'Yoga Flow',
+    icon: '🧘‍♀️',
+    exercises: [
+      { name: 'Sun Salutation A', sets: [{ reps: 5, weight: 0, completed: false }] },
+      { name: 'Warrior Series', sets: [{ reps: 1, weight: 0, completed: false }] },
+      { name: 'Balance Poses', sets: [{ reps: 1, weight: 0, completed: false }] },
+      { name: 'Core Work', sets: [{ reps: 1, weight: 0, completed: false }] },
+      { name: 'Cool Down and Stretching', sets: [{ reps: 1, weight: 0, completed: false }] },
+    ]
+  },
+  mobilityAndFlexibility: {
+    name: 'Mobility & Flexibility',
+    icon: '🤸‍♂️',
+    exercises: [
+      { name: 'Dynamic Stretching Routine', sets: [{ reps: 1, weight: 0, completed: false }] },
+      { name: 'Foam Rolling', sets: [{ reps: 1, weight: 0, completed: false }] },
+      { name: 'Joint Mobility Exercises', sets: [{ reps: 1, weight: 0, completed: false }] },
+      { name: 'Static Stretching', sets: [{ reps: 1, weight: 0, completed: false }] },
+      { name: 'Yoga-inspired Stretches', sets: [{ reps: 1, weight: 0, completed: false }] },
+    ]
+  },
+  martialArtsConditioning: {
+    name: 'Martial Arts Conditioning',
+    icon: '🥋',
+    exercises: [
+      { name: 'Shadow Boxing', sets: [{ reps: 3, weight: 0, completed: false }] },
+      { name: 'Burpees', sets: [{ reps: 20, weight: 0, completed: false }] },
+      { name: 'Jump Rope', sets: [{ reps: 100, weight: 0, completed: false }] },
+      { name: 'Mountain Climbers', sets: [{ reps: 50, weight: 0, completed: false }] },
+      { name: 'Leg Raises', sets: [{ reps: 20, weight: 0, completed: false }] },
+    ]
+  }
 }
 
 export default function LogWorkout() {
