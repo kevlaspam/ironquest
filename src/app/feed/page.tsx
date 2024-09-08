@@ -309,7 +309,7 @@ export default function Feed() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <MainMenu />
-      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float">Social Feed</h1>
+      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float">Social Feed 💬</h1>
       
       {loading && <LoadingSpinner />}
 
