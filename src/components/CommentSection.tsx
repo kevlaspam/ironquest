@@ -39,7 +39,7 @@ export function CommentSection({ postId, comments, onComment, onLike, currentUse
           <div key={index} className="bg-gray-800 rounded-lg p-3 shadow-sm">
             <div className="flex justify-between items-start">
               <div className="flex items-center space-x-2">
-                <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">@{comment.userName}</span>
+                <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-400">@{comment.userName}</span>
                 <span className="text-xs text-gray-400">
                   {formatDistanceToNow(new Date(comment.createdAt.seconds * 1000), { addSuffix: true })}
                 </span>

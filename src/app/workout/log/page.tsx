@@ -219,10 +219,6 @@ export default function LogWorkout() {
   const {
     exercises,
     setExercises,
-    timer,
-    setTimer,
-    isTimerRunning,
-    setIsTimerRunning,
     workoutStarted,
     setWorkoutStarted,
     currentWorkoutName,
@@ -233,6 +229,7 @@ export default function LogWorkout() {
   const [userWorkouts, setUserWorkouts] = useState<Workout[]>([])
   const [newWorkoutName, setNewWorkoutName] = useState('')
   const [expandedWorkout, setExpandedWorkout] = useState<string | null>(null)
+  const [elapsedTime, setElapsedTime] = useState(0)
   const router = useRouter()
 
   useEffect(() => {
@@ -242,16 +239,45 @@ export default function LogWorkout() {
   }, [user])
 
   useEffect(() => {
-    let interval: NodeJS.Timeout
+    const storedStartTime = localStorage.getItem('workoutStartTime')
+    const storedWorkoutStarted = localStorage.getItem('workoutStarted')
+    const storedCurrentWorkoutName = localStorage.getItem('currentWorkoutName')
+    const storedExercises = localStorage.getItem('exercises')
 
-    if (isTimerRunning) {
-      interval = setInterval(() => {
-        setTimer((prevTimer) => prevTimer + 1)
+    if (storedStartTime && storedWorkoutStarted === 'true') {
+      const startTime = parseInt(storedStartTime, 10)
+      setWorkoutStarted(true)
+      setCurrentWorkoutName(storedCurrentWorkoutName || '')
+      if (storedExercises) {
+        setExercises(JSON.parse(storedExercises))
+      }
+      updateElapsedTime(startTime)
+    }
+  }, [])
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout
+
+    if (workoutStarted) {
+      intervalId = setInterval(() => {
+        updateElapsedTime()
       }, 1000)
     }
 
-    return () => clearInterval(interval)
-  }, [isTimerRunning, setTimer])
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId)
+      }
+    }
+  }, [workoutStarted])
+
+  const updateElapsedTime = (startTime?: number) => {
+    const storedStartTime = startTime || parseInt(localStorage.getItem('workoutStartTime') || '0', 10)
+    if (storedStartTime) {
+      const newElapsedTime = Math.floor((Date.now() - storedStartTime) / 1000)
+      setElapsedTime(newElapsedTime)
+    }
+  }
 
   const fetchUserWorkouts = async () => {
     if (!user) return
@@ -266,11 +292,15 @@ export default function LogWorkout() {
   }
 
   const startWorkout = (workout?: Workout) => {
+    const startTime = Date.now()
     setWorkoutStarted(true)
-    setIsTimerRunning(true)
+    localStorage.setItem('workoutStartTime', startTime.toString())
+    localStorage.setItem('workoutStarted', 'true')
     if (workout) {
       setExercises(workout.exercises)
       setCurrentWorkoutName(workout.name)
+      localStorage.setItem('currentWorkoutName', workout.name)
+      localStorage.setItem('exercises', JSON.stringify(workout.exercises))
     }
   }
 
@@ -292,22 +322,30 @@ export default function LogWorkout() {
       return
     }
 
-    setIsTimerRunning(false)
-
     try {
       await addDoc(collection(db, 'workouts'), {
         userId: user.uid,
         name: currentWorkoutName,
         exercises,
-        duration: timer,
+        duration: elapsedTime,
         date: serverTimestamp(),
       })
       toast.success('Workout logged successfully!')
-      clearWorkout()
+      clearWorkoutAndLocalStorage()
     } catch (error) {
       console.error('Error adding document: ', error)
       toast.error('Failed to log workout. Please try again.')
     }
+  }
+
+  const clearWorkoutAndLocalStorage = () => {
+    clearWorkout()
+    setElapsedTime(0)
+    setWorkoutStarted(false)
+    localStorage.removeItem('workoutStartTime')
+    localStorage.removeItem('workoutStarted')
+    localStorage.removeItem('currentWorkoutName')
+    localStorage.removeItem('exercises')
   }
 
   const saveWorkout = async () => {
@@ -353,7 +391,7 @@ export default function LogWorkout() {
   }
 
   const handleCancel = () => {
-    clearWorkout()
+    clearWorkoutAndLocalStorage()
     router.push('/workout/log')
   }
 
@@ -492,14 +530,18 @@ export default function LogWorkout() {
             </div>
           )}
         </div>
-      ) : (        <div className="space-y-6">
+      ) : (        
+        <div className="space-y-6">
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
             <div className="flex flex-col md:flex-row justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-white mb-2 md:mb-0">Name Your Workout</h2>
               <input
                 type="text"
                 value={currentWorkoutName}
-                onChange={(e) => setCurrentWorkoutName(e.target.value)}
+                onChange={(e) => {
+                  setCurrentWorkoutName(e.target.value)
+                  localStorage.setItem('currentWorkoutName', e.target.value)
+                }}
                 placeholder="Enter workout name"
                 className="bg-gray-700 text-white rounded-lg p-2 w-full md:w-1/2"
                 required
@@ -507,7 +549,7 @@ export default function LogWorkout() {
             </div>
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold text-white">Workout Timer</h3>
-              <p className="text-3xl font-bold text-yellow-500">{formatTime(timer)}</p>
+              <p className="text-3xl font-bold text-yellow-500">{formatTime(elapsedTime)}</p>
             </div>
           </div>
 
