@@ -7,6 +7,8 @@ import { db } from '../../lib/firebase'
 import { MainMenu } from '../../components/MainMenu'
 import { Trash2, AlertCircle, Calendar, Clock, Dumbbell, Share2, ChevronDown, ChevronUp, Edit2, Sword, Trophy, Save, Info } from 'lucide-react'
 import html2canvas from 'html2canvas'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 type Set = {
   reps: number;
@@ -32,7 +34,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isIndexBuilding, setIsIndexBuilding] = useState(false)
-  const [deleteConfirmation, setDeleteConfirmation] = useState<string | null>(null)
   const [expandedWorkouts, setExpandedWorkouts] = useState<string[]>([])
   const [editingWorkout, setEditingWorkout] = useState<string | null>(null)
   const [newWorkoutName, setNewWorkoutName] = useState('')
@@ -77,10 +78,10 @@ export default function Dashboard() {
     try {
       await deleteDoc(doc(db, 'workouts', workoutId));
       setWorkouts(prevWorkouts => prevWorkouts.filter(workout => workout.id !== workoutId));
-      setDeleteConfirmation(null);
+      toast.success('Workout deleted successfully');
     } catch (err) {
       console.error('Error deleting workout:', err);
-      setError(`Failed to delete workout: ${(err as Error).message}`);
+      toast.error(`Failed to delete workout: ${(err as Error).message}`);
     }
   }
 
@@ -107,9 +108,10 @@ export default function Dashboard() {
         link.href = image;
         link.download = `workout-${workoutId}.png`;
         link.click();
+        toast.success('Screenshot saved successfully');
       } catch (err) {
         console.error('Error creating screenshot:', err);
-        setError('Failed to create screenshot. Please try again.');
+        toast.error('Failed to create screenshot. Please try again.');
       }
     }
   }
@@ -132,9 +134,10 @@ export default function Dashboard() {
       ));
       setEditingWorkout(null);
       setNewWorkoutName('');
+      toast.success('Workout renamed successfully');
     } catch (err) {
       console.error('Error renaming workout:', err);
-      setError(`Failed to rename workout: ${(err as Error).message}`);
+      toast.error(`Failed to rename workout: ${(err as Error).message}`);
     }
   }
 
@@ -148,10 +151,10 @@ export default function Dashboard() {
         exercises: workout.exercises
       };
       await addDoc(collection(db, 'userWorkouts'), templateData);
-      alert('Workout saved as template!');
+      toast.success('Workout saved as template!');
     } catch (err) {
       console.error('Error saving workout as template:', err);
-      setError(`Failed to save workout as template: ${(err as Error).message}`);
+      toast.error(`Failed to save workout as template: ${(err as Error).message}`);
     }
   }
 
@@ -175,6 +178,7 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <MainMenu />
+      <ToastContainer />
       <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float">
         Your Workout History 🏆
       </h1>
@@ -224,32 +228,32 @@ export default function Dashboard() {
           <p>{error}</p>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-4">
           {workouts.map((workout) => (
             <div
               key={workout.id}
-              className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl"
+              className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-lg shadow-md overflow-hidden transition-all duration-300 ease-in-out hover:shadow-lg"
             >
               <div
                 id={workout.id}
                 ref={(el) => { workoutRefs.current[workout.id] = el; }}
-                className="p-6 border-4 border-yellow-500"
+                className="p-4 border-2 border-yellow-500"
               >
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-4">
-                    <Sword className="h-8 w-8 text-yellow-500" />
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <Sword className="h-6 w-6 text-yellow-500" />
                     {editingWorkout === workout.id ? (
                       <input
                         type="text"
                         value={newWorkoutName}
                         onChange={(e) => setNewWorkoutName(e.target.value)}
-                        className="bg-gray-700 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                        className="bg-gray-700 text-white px-2 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 text-sm"
                         onKeyPress={(e) => {
                           if (e.key === 'Enter') handleRenameWorkout(workout.id);
                         }}
                       />
                     ) : (
-                      <h2 className="text-2xl font-bold text-white">
+                      <h2 className="text-lg font-bold text-white">
                         {workout.name}
                       </h2>
                     )}
@@ -257,93 +261,65 @@ export default function Dashboard() {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => handleSaveAsTemplate(workout)}
-                      className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50"
-                      aria-label="Save as template"
+                      className="text-green-500 hover:text-green-400 transition-colors duration-200"
+                      title="Save as template"
                     >
                       <Save className="h-5 w-5" />
                     </button>
                     <button
                       onClick={() => handleScreenshot(workout.id)}
-                      className="bg-yellow-500 text-gray-900 p-2 rounded-full hover:bg-yellow-400 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-opacity-50"
-                      aria-label="Take screenshot"
+                      className="text-yellow-500 hover:text-yellow-400 transition-colors duration-200"
+                      title="Take screenshot"
                     >
                       <Share2 className="h-5 w-5" />
                     </button>
-                    {editingWorkout === workout.id ? (
-                      <button
-                        onClick={() => handleRenameWorkout(workout.id)}
-                        className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50"
-                        aria-label="Save workout name"
-                      >
-                        <Edit2 className="h-5 w-5" />
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => {
+                    <button
+                      onClick={() => {
+                        if (editingWorkout === workout.id) {
+                          handleRenameWorkout(workout.id);
+                        } else {
                           setEditingWorkout(workout.id);
                           setNewWorkoutName(workout.name);
-                        }}
-                        className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50"
-                        aria-label="Rename workout"
-                      >
-                        <Edit2 className="h-5 w-5" />
-                      </button>
-                    )}
-                    {deleteConfirmation === workout.id ? (
-                      <>
-                        <button
-                          onClick={() => handleDeleteWorkout(workout.id)}
-                          className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50"
-                          aria-label="Confirm delete workout"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteConfirmation(null)}
-                          className="bg-gray-500 text-white p-2 rounded-full hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-50"
-                          aria-label="Cancel delete workout"
-                        >
-                          <AlertCircle className="h-5 w-5" />
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => setDeleteConfirmation(workout.id)}
-                        className="text-gray-300 hover:text-red-500 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50"
-                        aria-label="Delete workout"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    )}
+                        }
+                      }}
+                      className="text-blue-500 hover:text-blue-400 transition-colors duration-200"
+                      title={editingWorkout === workout.id ? "Save workout name" : "Rename workout"}
+                    >
+                      <Edit2 className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteWorkout(workout.id)}
+                      className="text-red-500 hover:text-red-400 transition-colors duration-200"
+                      title="Delete workout"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
                   </div>
                 </div>
-                <div className="flex items-center space-x-6 text-sm text-gray-300 mb-6">
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-5 w-5 text-yellow-500" />
+                <div className="flex items-center space-x-4 text-xs text-gray-400 mb-2">
+                  <div className="flex items-center space-x-1">
+                    <Calendar className="h-4 w-4 text-yellow-500" />
                     <span>{new Date(workout.date.seconds * 1000).toLocaleDateString()}</span>
                   </div>
                   {workout.duration && (
-                    <div className="flex items-center space-x-2">
-                      <Clock className="h-5 w-5 text-yellow-500" />
+                    <div className="flex items-center space-x-1">
+                      <Clock className="h-4 w-4 text-yellow-500" />
                       <span>{formatDuration(workout.duration)}</span>
                     </div>
                   )}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                   {workout.exercises.map((exercise, index) => (
-                    <div key={index} className="bg-gray-700 rounded-lg p-4 shadow-md">
-                      <h3 className="text-lg font-semibold text-white flex items-center mb-3">
-                        <Dumbbell className="mr-2 h-5 w-5 text-yellow-500" />
+                    <div key={index} className="bg-gray-700 rounded p-2 text-xs">
+                      <h3 className="font-semibold text-white flex items-center mb-1">
+                        <Dumbbell className="mr-1 h-3 w-3 text-yellow-500" />
                         {exercise.name}
                       </h3>
-                      <div className="text-gray-300 text-sm">
-                      {expandedWorkouts.includes(workout.id) ? (
-                          <ul className="space-y-2">
+                      <div className="text-gray-300">
+                        {expandedWorkouts.includes(workout.id) ? (
+                          <ul className="space-y-1">
                             {exercise.sets.map((set, setIndex) => (
-                              <li
-                                key={setIndex}
-                                className="flex justify-between items-center"
-                              >
+                              <li key={setIndex} className="flex justify-between items-center">
                                 <span>Set {setIndex + 1}:</span>
                                 <span className="font-medium">{set.reps} x {set.weight}kg</span>
                               </li>
@@ -351,7 +327,7 @@ export default function Dashboard() {
                           </ul>
                         ) : (
                           <div className="flex justify-between items-center">
-                            <span>Best Set:</span>
+                            <span>Best:</span>
                             <span className="font-medium">
                               {getBestSet(exercise.sets).reps} x {getBestSet(exercise.sets).weight}kg
                             </span>
@@ -364,16 +340,16 @@ export default function Dashboard() {
               </div>
               <button
                 onClick={() => toggleExpand(workout.id)}
-                className="w-full bg-gray-800 text-yellow-500 hover:text-yellow-400 transition-colors duration-200 py-3 flex items-center justify-center focus:outline-none focus:bg-gray-700"
+                className="w-full bg-gray-800 text-yellow-500 hover:text-yellow-400 transition-colors duration-200 py-2 flex items-center justify-center focus:outline-none focus:bg-gray-700 text-sm"
               >
                 {expandedWorkouts.includes(workout.id) ? (
                   <>
-                    <ChevronUp className="mr-2 h-5 w-5" />
+                    <ChevronUp className="mr-1 h-4 w-4" />
                     Hide Details
                   </>
                 ) : (
                   <>
-                    <ChevronDown className="mr-2 h-5 w-5" />
+                    <ChevronDown className="mr-1 h-4 w-4" />
                     Show Details
                   </>
                 )}
