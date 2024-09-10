@@ -1,13 +1,13 @@
-import { useState } from 'react'
-import { Timestamp } from 'firebase/firestore'
-import { Send, Heart, ChevronDown, ChevronUp } from 'lucide-react'
+import React, { useState } from 'react'
+import { Send, Heart, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
 type Comment = {
+  id: string // Add this line
   userId: string
   userName: string
   content: string
-  createdAt: Timestamp
+  createdAt: number | { seconds: number; nanoseconds: number } | Date
   likes?: string[]
 }
 
@@ -15,11 +15,12 @@ type CommentSectionProps = {
   postId: string
   comments: Comment[]
   onComment: (postId: string, comment: string) => void
-  onLike: (postId: string, commentIndex: number) => void
+  onLike: (postId: string, commentId: string) => void
+  onDelete: (postId: string, commentId: string) => void // Add this line
   currentUserId: string
 }
 
-export function CommentSection({ postId, comments, onComment, onLike, currentUserId }: CommentSectionProps) {
+export function CommentSection({ postId, comments, onComment, onLike, onDelete, currentUserId }: CommentSectionProps) {
   const [newComment, setNewComment] = useState('')
   const [expanded, setExpanded] = useState(false)
   const visibleComments = expanded ? comments : comments.slice(0, 2)
@@ -32,25 +33,55 @@ export function CommentSection({ postId, comments, onComment, onLike, currentUse
     }
   }
 
+  const formatCommentDate = (createdAt: Comment['createdAt']) => {
+    let date: Date;
+    if (createdAt instanceof Date) {
+      date = createdAt;
+    } else if (typeof createdAt === 'number') {
+      date = new Date(createdAt);
+    } else if (typeof createdAt === 'object' && 'seconds' in createdAt) {
+      date = new Date(createdAt.seconds * 1000);
+    } else {
+      return 'Invalid date';
+    }
+    
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    
+    return formatDistanceToNow(date, { addSuffix: true });
+  }
+
   return (
     <div className="mt-4">
       <div className="space-y-3">
-        {visibleComments.map((comment, index) => (
-          <div key={index} className="bg-gray-800 rounded-lg p-3 shadow-sm">
+        {visibleComments.map((comment) => (
+          <div key={comment.id} className="bg-gray-800 rounded-lg p-3 shadow-sm">
             <div className="flex justify-between items-start">
               <div className="flex items-center space-x-2">
                 <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-400">@{comment.userName}</span>
                 <span className="text-xs text-gray-400">
-                  {formatDistanceToNow(new Date(comment.createdAt.seconds * 1000), { addSuffix: true })}
+                  {formatCommentDate(comment.createdAt)}
                 </span>
               </div>
-              <button
-                onClick={() => onLike(postId, index)}
-                className={`flex items-center space-x-1 ${(comment.likes || []).includes(currentUserId) ? 'text-red-500' : 'text-gray-400'} hover:text-red-500 transition-colors duration-200`}
-              >
-                <Heart className={`w-4 h-4 ${(comment.likes || []).includes(currentUserId) ? 'fill-current' : ''}`} />
-                <span className="text-xs">{comment.likes?.length || 0}</span>
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => onLike(postId, comment.id)}
+                  className={`flex items-center space-x-1 ${comment.likes?.includes(currentUserId) ? 'text-red-500' : 'text-gray-400'} hover:text-red-500 transition-colors duration-200`}
+                >
+                  <Heart className={`w-4 h-4 ${comment.likes?.includes(currentUserId) ? 'fill-current' : ''}`} />
+                  <span className="text-xs">{comment.likes?.length || 0}</span>
+                </button>
+                {comment.userId === currentUserId && (
+                  <button
+                    onClick={() => onDelete(postId, comment.id)}
+                    className="text-gray-400 hover:text-red-500 transition-colors duration-200"
+                    aria-label="Delete comment"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
             <p className="text-white text-sm mt-1">{comment.content}</p>
           </div>
@@ -77,7 +108,6 @@ export function CommentSection({ postId, comments, onComment, onLike, currentUse
       <form onSubmit={handleSubmit} className="mt-4 flex items-center space-x-2">
         <input
           type="text"
-          id={`comment-input-${postId}`}
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Add a comment..."

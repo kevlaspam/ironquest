@@ -39,6 +39,15 @@ type Workout = {
   duration: number
 }
 
+type Comment = {
+  id: string
+  userId: string
+  userName: string
+  content: string
+  createdAt: Timestamp | FieldValue
+  likes: string[]
+}
+
 type Post = {
   id: string
   content: string
@@ -46,7 +55,7 @@ type Post = {
   userName: string
   createdAt: Timestamp | FieldValue | null
   likes: string[]
-  comments: { userId: string; userName: string; content: string; createdAt: Timestamp; likes: string[] }[]
+  comments: Comment[]
   workoutId?: string
   workout?: Workout
   mood?: string
@@ -242,28 +251,72 @@ export default function Feed() {
 
   const handleAddComment = async (postId: string, commentContent: string) => {
     if (!user || !commentContent.trim()) return
-
+  
     try {
+      console.log('Adding comment:', { postId, commentContent, user })
       const postRef = doc(db, 'posts', postId)
-      const newComment = {
+      
+      // First, get the current post data
+      const postDoc = await getDoc(postRef)
+      if (!postDoc.exists()) {
+        throw new Error("Post not found")
+      }
+      
+      const postData = postDoc.data() as Post
+      const newComment: Comment = {
+        id: crypto.randomUUID(),
         userId: user.uid,
         userName: userProfile?.username || 'Anonymous',
         content: commentContent.trim(),
-        createdAt: serverTimestamp(),
+        createdAt: Timestamp.now(), // Use client-side timestamp
         likes: []
       }
+      console.log('New comment object:', newComment)
+  
+      // Add the new comment to the existing comments array
+      const updatedComments = [...(postData.comments || []), newComment]
+  
+      // Update the post with the new comments array
       await updateDoc(postRef, {
-        comments: arrayUnion(newComment)
+        comments: updatedComments
       })
+  
+      console.log('Comment added successfully')
       setToast({ message: 'Comment added successfully!', type: 'success' })
       fetchPosts()
     } catch (err) {
       console.error('Error adding comment:', err)
-      setToast({ message: 'Failed to add comment. Please try again.', type: 'error' })
+      console.error('Error details:', JSON.stringify(err, null, 2))
+      setToast({ message: `Failed to add comment: ${err.message}`, type: 'error' })
     }
   }
 
-  const handleLikeComment = async (postId: string, commentIndex: number) => {
+  const handleDeleteComment = async (postId: string, commentId: string) => {
+    if (!user) return
+
+    try {
+      const postRef = doc(db, 'posts', postId)
+      const postDoc = await getDoc(postRef)
+
+      if (postDoc.exists()) {
+        const postData = postDoc.data() as Post
+        const updatedComments = postData.comments.filter(comment => comment.id !== commentId)
+
+        await updateDoc(postRef, {
+          comments: updatedComments
+        })
+
+        console.log('Comment deleted successfully')
+        setToast({ message: 'Comment deleted successfully!', type: 'success' })
+        fetchPosts()
+      }
+    } catch (err) {
+      console.error('Error deleting comment:', err)
+      setToast({ message: `Failed to delete comment: ${err.message}`, type: 'error' })
+    }
+  }
+
+  const handleLikeComment = async (postId: string, commentId: string) => {
     if (!user) return
 
     try {
@@ -272,23 +325,20 @@ export default function Feed() {
       
       if (postDoc.exists()) {
         const postData = postDoc.data() as Post
-        const comments = postData.comments || []
-        
-        if (commentIndex >= 0 && commentIndex < comments.length) {
-          const updatedComments = [...comments]
-          const comment = updatedComments[commentIndex]
-          const likes = comment.likes || []
-          
-          if (likes.includes(user.uid)) {
-            likes.splice(likes.indexOf(user.uid), 1)
-          } else {
-            likes.push(user.uid)
+        const updatedComments = postData.comments.map(comment => {
+          if (comment.id === commentId) {
+            const likes = comment.likes || []
+            if (likes.includes(user.uid)) {
+              return { ...comment, likes: likes.filter(id => id !== user.uid) }
+            } else {
+              return { ...comment, likes: [...likes, user.uid] }
+            }
           }
-          
-          comment.likes = likes
-          await updateDoc(postRef, { comments: updatedComments })
-          fetchPosts()
-        }
+          return comment
+        })
+
+        await updateDoc(postRef, { comments: updatedComments })
+        fetchPosts()
       }
     } catch (err) {
       console.error('Error updating comment like:', err)
@@ -329,11 +379,7 @@ export default function Feed() {
               <div className="flex flex-col sm:flex-row gap-4 mb-4">
                 <select
                   value={selectedWorkout || ''}
-                  onChange={(e) => {
-                    setSelectedWorkout(e.target.value)
-                    const workout = workouts.find(w => w.id === e.target.value)
-                    setPreviewWorkout(workout || null)
-                  }}
+                  onChange={(e) => handleWorkoutSelect(e.target.value)}
                   className="w-full sm:w-1/2 p-2 bg-gray-700 text-white border border-gray-600 focus:border-yellow-500 rounded-lg"
                 >
                   <option value="">Select workout</option>
@@ -432,8 +478,9 @@ export default function Feed() {
                 <CommentSection
                   postId={post.id}
                   comments={post.comments || []}
-                  onComment={(comment) => handleAddComment(post.id, comment)}
+                  onComment={(postId, comment) => handleAddComment(postId, comment)}
                   onLike={handleLikeComment}
+                  onDelete={handleDeleteComment}
                   currentUserId={user.uid}
                 />
               </div>
