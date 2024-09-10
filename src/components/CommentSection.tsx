@@ -3,12 +3,12 @@ import { Send, Heart, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
 type Comment = {
-  id: string // Add this line
+  id: string
   userId: string
   userName: string
   content: string
   createdAt: number | { seconds: number; nanoseconds: number } | Date
-  likes?: string[]
+  likes: string[]
 }
 
 type CommentSectionProps = {
@@ -16,7 +16,7 @@ type CommentSectionProps = {
   comments: Comment[]
   onComment: (postId: string, comment: string) => void
   onLike: (postId: string, commentId: string) => void
-  onDelete: (postId: string, commentId: string) => void // Add this line
+  onDelete: (postId: string, commentId: string) => void
   currentUserId: string
 }
 

@@ -44,7 +44,7 @@ type Comment = {
   userId: string
   userName: string
   content: string
-  createdAt: Timestamp | FieldValue
+  createdAt: number | { seconds: number; nanoseconds: number } | Date
   likes: string[]
 }
 
@@ -268,7 +268,7 @@ export default function Feed() {
         userId: user.uid,
         userName: userProfile?.username || 'Anonymous',
         content: commentContent.trim(),
-        createdAt: Timestamp.now(), // Use client-side timestamp
+        createdAt: Date.now(), // Use current timestamp as number
         likes: []
       }
       console.log('New comment object:', newComment)
@@ -321,7 +321,7 @@ export default function Feed() {
       })
     }
   }
-  
+
   const handleLikeComment = async (postId: string, commentId: string) => {
     if (!user) return
 
