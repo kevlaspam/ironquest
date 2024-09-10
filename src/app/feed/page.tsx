@@ -296,29 +296,32 @@ export default function Feed() {
 
   const handleDeleteComment = async (postId: string, commentId: string) => {
     if (!user) return
-
+  
     try {
       const postRef = doc(db, 'posts', postId)
       const postDoc = await getDoc(postRef)
-
+  
       if (postDoc.exists()) {
         const postData = postDoc.data() as Post
         const updatedComments = postData.comments.filter(comment => comment.id !== commentId)
-
+  
         await updateDoc(postRef, {
           comments: updatedComments
         })
-
+  
         console.log('Comment deleted successfully')
         setToast({ message: 'Comment deleted successfully!', type: 'success' })
         fetchPosts()
       }
     } catch (err) {
       console.error('Error deleting comment:', err)
-      setToast({ message: `Failed to delete comment: ${err.message}`, type: 'error' })
+      setToast({ 
+        message: `Failed to delete comment: ${err instanceof Error ? err.message : 'Unknown error'}`, 
+        type: 'error' 
+      })
     }
   }
-
+  
   const handleLikeComment = async (postId: string, commentId: string) => {
     if (!user) return
 
