@@ -287,7 +287,10 @@ export default function Feed() {
     } catch (err) {
       console.error('Error adding comment:', err)
       console.error('Error details:', JSON.stringify(err, null, 2))
-      setToast({ message: `Failed to add comment: ${err.message}`, type: 'error' })
+      setToast({ 
+        message: `Failed to add comment: ${err instanceof Error ? err.message : 'Unknown error'}`, 
+        type: 'error' 
+      })
     }
   }
 
