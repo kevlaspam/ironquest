@@ -1,5 +1,7 @@
-import React, { useEffect } from 'react'
-import { Play, Pause, RotateCcw, Clock } from 'lucide-react'
+'use client'
+
+import React, { useEffect, useState, useRef } from 'react'
+import { Play, Pause, RotateCcw, Clock, Plus, Minus, Volume2, VolumeX } from 'lucide-react'
 import { useWorkout } from './WorkoutContext'
 
 const presetTimes = [
@@ -21,6 +23,9 @@ export const RestTimer: React.FC = () => {
     setRestDuration
   } = useWorkout()
 
+  const [isMuted, setIsMuted] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
   useEffect(() => {
     let interval: NodeJS.Timeout
 
@@ -31,6 +36,9 @@ export const RestTimer: React.FC = () => {
             return prevTimer - 1
           } else {
             setIsRestTimerRunning(false)
+            if (!isMuted && audioRef.current) {
+              audioRef.current.play()
+            }
             return 0
           }
         })
@@ -38,7 +46,7 @@ export const RestTimer: React.FC = () => {
     }
 
     return () => clearInterval(interval)
-  }, [isRestTimerRunning, restTimer, setRestTimer, setIsRestTimerRunning])
+  }, [isRestTimerRunning, restTimer, setRestTimer, setIsRestTimerRunning, isMuted])
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)
@@ -64,8 +72,17 @@ export const RestTimer: React.FC = () => {
     setIsRestTimerRunning(false)
   }
 
+  const adjustTime = (amount: number) => {
+    setRestTimer((prevTimer) => Math.max(0, prevTimer + amount))
+    setRestDuration((prevDuration) => Math.max(0, prevDuration + amount))
+  }
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted)
+  }
+
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-4 border-4 border-yellow-500">
+    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-4 border-4 border-yellow-500 sticky top-4 z-10">
       <div className="flex flex-col space-y-4">
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold text-white flex items-center">
@@ -96,6 +113,12 @@ export const RestTimer: React.FC = () => {
           ))}
         </div>
         <div className="flex justify-center space-x-4">
+          <button 
+            onClick={() => adjustTime(-5)} 
+            className="bg-gray-700 text-white p-2 rounded-full hover:bg-gray-600 transition-colors"
+          >
+            <Minus size={20} />
+          </button>
           {isRestTimerRunning ? (
             <button 
               onClick={() => setIsRestTimerRunning(false)} 
@@ -117,8 +140,21 @@ export const RestTimer: React.FC = () => {
           >
             <RotateCcw size={20} />
           </button>
+          <button 
+            onClick={() => adjustTime(5)} 
+            className="bg-gray-700 text-white p-2 rounded-full hover:bg-gray-600 transition-colors"
+          >
+            <Plus size={20} />
+          </button>
+          <button 
+            onClick={toggleMute} 
+            className="bg-gray-700 text-white p-2 rounded-full hover:bg-gray-600 transition-colors"
+          >
+            {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+          </button>
         </div>
       </div>
+      <audio ref={audioRef} src="/ding.mp3" />
     </div>
   )
 }
