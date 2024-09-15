@@ -11,19 +11,96 @@ type Exercise = {
 }
 
 const exerciseOptions = {
-  Chest: ['Barbell Bench Press', 'Incline Dumbbell Press', 'Decline Bench Press', 'Chest Dips', 'Push-Ups', 'Cable Flyes', 'Pec Deck Machine', 'Landmine Press', 'Smith Machine Bench Press', 'Dumbbell Flyes', 'Svend Press', 'Resistance Band Chest Press'],
-  Back: ['Lat Pulldown', 'Seated Cable Row', 'Bent Over Barbell Row', 'T-Bar Row', 'Pull-Ups', 'Chin-Ups', 'Face Pulls', 'Straight Arm Pulldown', 'Single-Arm Dumbbell Row', 'Pendlay Row', 'Meadows Row', 'Inverted Row', 'Good Mornings'],
-  Shoulders: ['Overhead Barbell Press', 'Dumbbell Shoulder Press', 'Arnold Press', 'Lateral Raises', 'Front Raises', 'Reverse Flyes', 'Upright Rows', 'Shrugs', 'Pike Push-Ups', 'Landmine Press', 'Cable Face Pulls', 'Barbell High Pulls'],
-  Biceps: ['Barbell Curl', 'Dumbbell Curl', 'Hammer Curls', 'Preacher Curls', 'Concentration Curls', 'Cable Curls', 'Incline Dumbbell Curls', 'Spider Curls', 'Zottman Curls', 'Reverse Curls', 'Chin-Ups', 'EZ-Bar Curls'],
-  Triceps: ['Tricep Pushdowns', 'Overhead Tricep Extension', 'Skull Crushers', 'Close-Grip Bench Press', 'Diamond Push-Ups', 'Tricep Dips', 'Cable Tricep Kickbacks', 'JM Press', 'Tate Press', 'Board Press', 'Rolling Tricep Extensions'],
-  Legs: ['Barbell Back Squat', 'Front Squat', 'Leg Press', 'Romanian Deadlift', 'Lunges', 'Leg Extensions', 'Leg Curls', 'Calf Raises', 'Hip Thrusts', 'Bulgarian Split Squats', 'Hack Squat', 'Goblet Squat', 'Step-Ups', 'Nordic Hamstring Curls', 'Sissy Squats'],
-  Abs: ['Crunches', 'Planks', 'Russian Twists', 'Leg Raises', 'Ab Wheel Rollouts', 'Hanging Leg Raises', 'Cable Crunches', 'Mountain Climbers', 'Dragon Flags', 'Hollow Body Hold', 'L-Sit', 'Windshield Wipers'],
-  Compound: ['Deadlifts', 'Power Cleans', 'Barbell Rows', 'Dumbbell Thrusters', 'Clean and Jerk', 'Snatch', 'Kettlebell Swings', 'Turkish Get-Ups', 'Farmers Walks', 'Sled Pushes/Pulls'],
-  Machines: ['Chest Press Machine', 'Shoulder Press Machine', 'Leg Press Machine', 'Seated Leg Curl Machine', 'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Tricep Pushdown Machine', 'Hack Squat Machine', 'Smith Machine', 'Assisted Pull-Up Machine'],
-  Bodyweight: ['Push-Ups', 'Pull-Ups', 'Dips', 'Squats', 'Lunges', 'Burpees', 'Mountain Climbers', 'Plank', 'Side Plank', 'Glute Bridges', 'Step-Ups', 'Handstand Push-Ups', 'Pistol Squats', 'Muscle-Ups', 'Dragon Flags'],
-  Cable: ['Cable Crossovers', 'Cable Woodchoppers', 'Cable Crunches', 'Cable Lateral Raises', 'Cable Face Pulls', 'Cable Tricep Pushdowns', 'Cable Bicep Curls', 'Cable Pull-Throughs', 'Cable Upright Rows', 'Cable Rotations'],
-  Calisthenics: ['Muscle-Ups', 'Front Lever', 'Back Lever', 'Planche', 'Human Flag', 'Handstand', 'L-Sit', 'Pistol Squat', 'One-Arm Push-Up', 'One-Arm Pull-Up'],
-  Plyometrics: ['Box Jumps', 'Depth Jumps', 'Burpees', 'Jump Squats', 'Clap Push-Ups', 'Jumping Lunges', 'Tuck Jumps', 'Broad Jumps', 'Plyo Push-Ups', 'Medicine Ball Slams']
+  Chest: [
+    'Barbell Bench Press', 'Incline Dumbbell Press', 'Decline Bench Press', 'Chest Dips', 'Push-Ups',
+    'Cable Flyes', 'Pec Deck Machine', 'Landmine Press', 'Smith Machine Bench Press', 'Dumbbell Flyes',
+    'Svend Press', 'Resistance Band Chest Press', 'Machine Chest Press', 'Single Arm Dumbbell Bench Press',
+    'Incline Cable Flyes', 'Decline Dumbbell Press', 'Cable Chest Press', 'Push-Up with Feet Elevated',
+    'Bench Dips', 'Flat Bench Dumbbell Press', 'Incline Bench Barbell Press', 'Incline Bench Dumbbell Press',
+    'Decline Bench Barbell Press', 'Decline Bench Dumbbell Press', 'Chest Fly Machine'
+  ],
+  Back: [
+    'Lat Pulldown', 'Seated Cable Row', 'Bent Over Barbell Row', 'T-Bar Row', 'Pull-Ups', 'Chin-Ups',
+    'Face Pulls', 'Straight Arm Pulldown', 'Single-Arm Dumbbell Row', 'Pendlay Row', 'Meadows Row',
+    'Inverted Row', 'Good Mornings', 'Iso Machine Row', '1 Arm Cable Rear Delt Pull', 'Wide Grip Pull-Up',
+    'Reverse Grip Barbell Row', 'Cable Row with V-Bar', 'Kettlebell Swings', 'Barbell Shrugs',
+    'Single Arm Lat Pulldown', 'Chest Supported Row', 'Wide Grip Lat Pulldown', 'Single Arm T-Bar Row',
+    'Reverse Fly Machine'
+  ],
+  Shoulders: [
+    'Overhead Barbell Press', 'Dumbbell Shoulder Press', 'Arnold Press', 'Lateral Raises', 'Front Raises',
+    'Reverse Flyes', 'Upright Rows', 'Shrugs', 'Pike Push-Ups', 'Landmine Press', 'Cable Face Pulls',
+    'Barbell High Pulls', 'Machine Shoulder Press', 'Cable Lateral Raises', 'Face Pulls', 'Dumbbell Rear Delt Fly',
+    'Barbell Behind the Neck Press', 'Cable Rear Delt Fly', 'Dumbbell Shrugs', 'Front Plate Raises',
+    'Dumbbell Lateral Raises', 'Single Arm Overhead Press', 'Seated Dumbbell Press', 'Reverse Pec Deck Machine'
+  ],
+  Biceps: [
+    'Barbell Curl', 'Dumbbell Curl', 'Hammer Curls', 'Preacher Curls', 'Concentration Curls', 'Cable Curls',
+    'Incline Dumbbell Curls', 'Spider Curls', 'Zottman Curls', 'Reverse Curls', 'Chin-Ups', 'EZ-Bar Curls',
+    'High Curl', 'Cable Hammer Curl', 'Drag Curl', 'Barbell Preacher Curl', 'Seated Alternating Curl',
+    'Incline Hammer Curl', 'Cross-Body Hammer Curl', 'Dumbbell Curl with Supination', 'Cable Bicep Curl', 
+    'Cable Concentration Curl', 'Single Arm Dumbbell Curl', 'Machine Bicep Curl'
+  ],
+  Triceps: [
+    'Tricep Pushdowns', 'Overhead Tricep Extension', 'Skull Crushers', 'Close-Grip Bench Press', 'Diamond Push-Ups',
+    'Tricep Dips', 'Cable Tricep Kickbacks', 'JM Press', 'Tate Press', 'Board Press', 'Rolling Tricep Extensions',
+    'Tricep Kickbacks', 'Tricep Rope Pushdown', 'Single-Arm Overhead Tricep Extension', 'Bench Dips',
+    'French Press', 'Dumbbell Tricep Extensions', 'Tricep Dips on Parallel Bars', 'Cable Tricep Extensions',
+    'Tricep Dip Machine', 'Overhead Rope Tricep Extension', 'Decline Tricep Extension', 'Single Arm Tricep Pushdown'
+  ],
+  Legs: [
+    'Barbell Back Squat', 'Front Squat', 'Leg Press', 'Romanian Deadlift', 'Lunges', 'Leg Extensions', 'Leg Curls',
+    'Calf Raises', 'Hip Thrusts', 'Bulgarian Split Squats', 'Hack Squat', 'Goblet Squat', 'Step-Ups',
+    'Nordic Hamstring Curls', 'Sissy Squats', 'Single-Leg Deadlift', 'Cable Kickbacks', 'Leg Press Calf Raises',
+    'Standing Calf Raises', 'Smith Machine Squats', 'Barbell Hip Thrust', 'Machine Hip Thrust', 'Seated Leg Press',
+    'Hip Abduction Machine', 'Hip Adduction Machine', 'Walking Lunges', 'Box Squats'
+  ],
+  Abs: [
+    'Crunches', 'Planks', 'Russian Twists', 'Leg Raises', 'Ab Wheel Rollouts', 'Hanging Leg Raises',
+    'Cable Crunches', 'Mountain Climbers', 'Dragon Flags', 'Hollow Body Hold', 'L-Sit', 'Windshield Wipers',
+    'Bicycle Crunches', 'Reverse Crunches', 'Toe Touches', 'Plank with Shoulder Tap', 'Hanging Knee Raises',
+    'V-Ups', 'Side Plank with Hip Dip', 'Cable Side Bends', 'Flutter Kicks', 'Medicine Ball Russian Twists'
+  ],
+  Compound: [
+    'Deadlifts', 'Power Cleans', 'Barbell Rows', 'Dumbbell Thrusters', 'Clean and Jerk', 'Snatch',
+    'Kettlebell Swings', 'Turkish Get-Ups', 'Farmers Walks', 'Sled Pushes/Pulls', 'Bench Press',
+    'Overhead Squats', 'Front Squats', 'Weighted Pull-Ups', 'Push Press', 'Medicine Ball Clean',
+    'Single-Leg Deadlifts', 'Battling Ropes', 'Barbell Hip Thrusts', 'Incline Bench Press',
+    'Barbell Shrugs', 'Dumbbell Bench Press', 'Chest Supported Dumbbell Rows', 'Cable Deadlifts'
+  ],
+  Machines: [
+    'Chest Press Machine', 'Shoulder Press Machine', 'Leg Press Machine', 'Seated Leg Curl Machine',
+    'Lat Pulldown Machine', 'Seated Row Machine', 'Pec Deck Machine', 'Tricep Pushdown Machine',
+    'Hack Squat Machine', 'Smith Machine', 'Assisted Pull-Up Machine', 'Iso Machine Row', 'Cable Machine',
+    'Leg Extension Machine', 'Standing Calf Raise Machine', 'Abduction Machine', 'Adduction Machine',
+    'Seated Calf Raise Machine', 'Overhead Shoulder Press Machine', 'Decline Chest Press Machine',
+    'Ab Crunch Machine', 'Reverse Leg Press Machine'
+  ],
+  Bodyweight: [
+    'Push-Ups', 'Pull-Ups', 'Dips', 'Squats', 'Lunges', 'Burpees', 'Mountain Climbers', 'Plank',
+    'Side Plank', 'Glute Bridges', 'Step-Ups', 'Handstand Push-Ups', 'Pistol Squats', 'Muscle-Ups',
+    'Dragon Flags', 'Archer Push-Ups', 'Bodyweight Rows', 'Clapping Push-Ups', 'Dive Bomber Push-Ups',
+    'Single-Leg Glute Bridges', 'Sphinx Push-Ups', 'Inverted Rows', 'Commando Plank', 'Spider Man Plank'
+  ],
+  Cable: [
+    'Cable Crossovers', 'Cable Woodchoppers', 'Cable Crunches', 'Cable Lateral Raises', 'Cable Face Pulls',
+    'Cable Tricep Pushdowns', 'Cable Bicep Curls', 'Cable Pull-Throughs', 'Cable Upright Rows', 'Cable Rotations',
+    'Cable Rear Delt Flyes', 'Cable Single Arm Row', 'Cable Shrugs', 'Cable Standing Ab Twist', 'Cable Side Lateral Raises',
+    'Cable Overhead Tricep Extension', 'Cable Front Raises', 'Cable Hip Abductions', 'Cable High Rows',
+    'Cable Curl to Press', 'Cable Rotational Woodchopper', 'Cable Kickbacks', 'Cable Single Arm Lat Pulldown'
+  ],
+  Calisthenics: [
+    'Muscle-Ups', 'Front Lever', 'Back Lever', 'Planche', 'Human Flag', 'Handstand', 'L-Sit',
+    'Pistol Squat', 'One-Arm Push-Up', 'One-Arm Pull-Up', 'Dragon Flag', 'Straddle Planche',
+    'Wide Grip Pull-Up', 'Handstand Push-Ups', 'Tuck Planche', 'Clapping Pull-Ups', 'Archers Push-Ups',
+    'Kipping Pull-Ups', 'Front Lever Pull-Ups', 'One-Legged Squats', 'One Arm L-Sit Pull-Up', 'L-Sit Chin-Up'
+  ],
+  Plyometrics: [
+    'Box Jumps', 'Depth Jumps', 'Burpees', 'Jump Squats', 'Clap Push-Ups', 'Jumping Lunges', 'Tuck Jumps',
+    'Broad Jumps', 'Plyo Push-Ups', 'Medicine Ball Slams', 'Single-Leg Box Jumps', 'Lateral Box Jumps',
+    'Explosive Step-Ups', 'Depth Drops', 'Jumping Jacks', 'Skater Jumps', 'Kangaroo Jumps', 'High Knees',
+    'Split Squat Jumps', 'Bounding',     'Plyometric Push-Ups', 'Seated Box Jumps', 'Medicine Ball Chest Passes'
+  ]
 }
 
 export const WorkoutCardTracker: React.FC = () => {
