@@ -103,8 +103,9 @@ const exerciseOptions = {
   ]
 }
 
+
 export const WorkoutCardTracker: React.FC = () => {
-  const { exercises, setExercises } = useWorkout()
+  const { exercises, setExercises, lastUsedValues, updateLastUsedValues } = useWorkout()
   const [selectedExerciseIndex, setSelectedExerciseIndex] = useState<number | null>(null)
 
   const handleExerciseChange = (exerciseIndex: number, exerciseName: string) => {
@@ -118,6 +119,16 @@ export const WorkoutCardTracker: React.FC = () => {
     const newExercises = [...exercises]
     newExercises[exerciseIndex].sets[setIndex][field] = value
     setExercises(newExercises)
+
+    // Update last used values when a set is changed
+    const exerciseName = newExercises[exerciseIndex].name
+    if (exerciseName) {
+      updateLastUsedValues(
+        exerciseName,
+        newExercises[exerciseIndex].sets[setIndex].reps,
+        newExercises[exerciseIndex].sets[setIndex].weight
+      )
+    }
   }
 
   const toggleSetCompletion = (exerciseIndex: number, setIndex: number) => {
@@ -128,7 +139,20 @@ export const WorkoutCardTracker: React.FC = () => {
 
   const addSet = (exerciseIndex: number) => {
     const newExercises = [...exercises]
-    newExercises[exerciseIndex].sets.push({ reps: 0, weight: 0, completed: false })
+    const exerciseName = newExercises[exerciseIndex].name
+    const lastSet = newExercises[exerciseIndex].sets[newExercises[exerciseIndex].sets.length - 1]
+    
+    let newSet = { reps: 0, weight: 0, completed: false }
+
+    if (lastSet) {
+      // Use the values from the last set
+      newSet = { ...lastSet, completed: false }
+    } else if (lastUsedValues[exerciseName]) {
+      // If there's no last set but we have last used values, use those
+      newSet = { ...lastUsedValues[exerciseName], completed: false }
+    }
+
+    newExercises[exerciseIndex].sets.push(newSet)
     setExercises(newExercises)
   }
 

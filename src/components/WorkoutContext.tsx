@@ -7,6 +7,10 @@ type Exercise = {
   sets: { reps: number; weight: number; completed: boolean }[]
 }
 
+type LastUsedValues = {
+  [exerciseName: string]: { reps: number; weight: number }
+}
+
 type WorkoutContextType = {
   exercises: Exercise[]
   setExercises: React.Dispatch<React.SetStateAction<Exercise[]>>
@@ -25,6 +29,8 @@ type WorkoutContextType = {
   currentWorkoutName: string
   setCurrentWorkoutName: React.Dispatch<React.SetStateAction<string>>
   clearWorkout: () => void
+  lastUsedValues: LastUsedValues
+  updateLastUsedValues: (exerciseName: string, reps: number, weight: number) => void
 }
 
 const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined)
@@ -38,6 +44,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isRestTimerRunning, setIsRestTimerRunning] = useState(false)
   const [restDuration, setRestDuration] = useState(60)
   const [currentWorkoutName, setCurrentWorkoutName] = useState('')
+  const [lastUsedValues, setLastUsedValues] = useState<LastUsedValues>({})
 
   useEffect(() => {
     const savedWorkout = localStorage.getItem('currentWorkout')
@@ -51,6 +58,10 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setIsRestTimerRunning(parsedWorkout.isRestTimerRunning)
       setRestDuration(parsedWorkout.restDuration)
       setCurrentWorkoutName(parsedWorkout.currentWorkoutName)
+    }
+    const savedLastUsedValues = localStorage.getItem('lastUsedValues')
+    if (savedLastUsedValues) {
+      setLastUsedValues(JSON.parse(savedLastUsedValues))
     }
   }, [])
 
@@ -67,6 +78,10 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }))
   }, [exercises, timer, isTimerRunning, workoutStarted, restTimer, isRestTimerRunning, restDuration, currentWorkoutName])
 
+  useEffect(() => {
+    localStorage.setItem('lastUsedValues', JSON.stringify(lastUsedValues))
+  }, [lastUsedValues])
+
   const clearWorkout = () => {
     setExercises([])
     setTimer(0)
@@ -77,6 +92,13 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setRestDuration(60)
     setCurrentWorkoutName('')
     localStorage.removeItem('currentWorkout')
+  }
+
+  const updateLastUsedValues = (exerciseName: string, reps: number, weight: number) => {
+    setLastUsedValues(prev => ({
+      ...prev,
+      [exerciseName]: { reps, weight }
+    }))
   }
 
   return (
@@ -97,7 +119,9 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setRestDuration,
       currentWorkoutName,
       setCurrentWorkoutName,
-      clearWorkout
+      clearWorkout,
+      lastUsedValues,
+      updateLastUsedValues
     }}>
       {children}
     </WorkoutContext.Provider>

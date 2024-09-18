@@ -12,6 +12,7 @@ export default function RepSelector({ value, onChange }: RepSelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [sliderValue, setSliderValue] = useState(value)
   const ref = useRef<HTMLDivElement>(null)
+  const popupRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setSliderValue(value)
@@ -19,7 +20,7 @@ export default function RepSelector({ value, onChange }: RepSelectorProps) {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
+      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
         setIsOpen(false)
       }
     }
@@ -65,7 +66,7 @@ export default function RepSelector({ value, onChange }: RepSelectorProps) {
       </button>
       {isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-gray-800 p-4 rounded-lg shadow-lg w-11/12 max-w-sm max-h-[80vh] overflow-y-auto">
+          <div ref={popupRef} className="bg-gray-800 p-4 rounded-lg shadow-lg w-11/12 max-w-sm max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-white">Select Reps</h3>
               <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-white">

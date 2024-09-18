@@ -1,5 +1,7 @@
+'use client'
+
 import React, { useEffect, useState, useRef } from 'react'
-import { Play, Pause, RotateCcw, Clock, Plus, Minus, Volume2, VolumeX } from 'lucide-react'
+import { Play, Pause, RotateCcw, Clock, Plus, Minus, Volume2, VolumeX, Minimize2, Maximize2 } from 'lucide-react'
 import { useWorkout } from './WorkoutContext'
 
 const presetTimes = [
@@ -22,20 +24,8 @@ export const RestTimer: React.FC = () => {
   } = useWorkout()
 
   const [isMuted, setIsMuted] = useState(false)
-  const [isCompact, setIsCompact] = useState(false)
+  const [isMinimized, setIsMinimized] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const timerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY
-      const threshold = 100 // Adjust this value to change when the timer becomes compact
-      setIsCompact(scrollPosition > threshold)
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -92,14 +82,18 @@ export const RestTimer: React.FC = () => {
     setIsMuted(!isMuted)
   }
 
+  const toggleMinimize = () => {
+    setIsMinimized(!isMinimized)
+  }
+
   return (
     <div 
-      ref={timerRef}
-      className={`bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg border-2 border-yellow-500 sticky top-4 z-10 transition-all duration-300 ease-in-out ${
-        isCompact ? 'p-2' : 'p-4'
+      className={`bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg border-4 border-yellow-500 sticky top-4 z-10 transition-all duration-300 ease-in-out ${
+        isMinimized ? 'p-2' : 'p-4'
       }`}
+      onClick={() => isMinimized && toggleMinimize()}
     >
-      {isCompact ? (
+      {isMinimized ? (
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Clock className="w-4 h-4 text-yellow-500" />
@@ -108,25 +102,25 @@ export const RestTimer: React.FC = () => {
           <div className="flex items-center space-x-2">
             {isRestTimerRunning ? (
               <button 
-                onClick={() => setIsRestTimerRunning(false)} 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsRestTimerRunning(false);
+                }} 
                 className="bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
               >
                 <Pause size={16} />
               </button>
             ) : (
               <button 
-                onClick={startRestTimer} 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  startRestTimer();
+                }} 
                 className="bg-green-500 text-white p-1 rounded-full hover:bg-green-600 transition-colors"
               >
                 <Play size={16} />
               </button>
             )}
-            <button 
-              onClick={resetTimer} 
-              className="bg-blue-500 text-white p-1 rounded-full hover:bg-blue-600 transition-colors"
-            >
-              <RotateCcw size={16} />
-            </button>
           </div>
         </div>
       ) : (
@@ -136,7 +130,15 @@ export const RestTimer: React.FC = () => {
               <Clock className="w-5 h-5 mr-2 text-yellow-500" />
               Rest Timer
             </h3>
-            <p className="text-2xl font-bold text-yellow-500">{formatTime(restTimer)}</p>
+            <div className="flex items-center space-x-2">
+              <p className="text-2xl font-bold text-yellow-500">{formatTime(restTimer)}</p>
+              <button
+                onClick={toggleMinimize}
+                className="p-1 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors"
+              >
+                <Minimize2 size={16} className="text-white" />
+              </button>
+            </div>
           </div>
           <div className="flex-1 bg-gray-700 h-2 rounded-full overflow-hidden">
             <div 
