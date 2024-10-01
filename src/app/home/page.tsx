@@ -7,6 +7,8 @@ import { Users, PlusSquare, History, BarChart2, Award, CheckSquare, User, Dumbbe
 import { useAuth } from '../../components/AuthProvider'
 import { db } from '../../lib/firebase'
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore'
+import { motion } from 'framer-motion'
+import { WorkoutCalendar } from '../../components/WorkoutCalendar'
 
 export default function Home() {
   const { user } = useAuth()
@@ -15,21 +17,27 @@ export default function Home() {
     totalWeightLifted: 0,
     workoutStreak: 0,
   })
+  const [workoutDates, setWorkoutDates] = useState<Date[]>([])
 
   useEffect(() => {
     const fetchStats = async () => {
       if (!user) return
 
       try {
-        // Fetch total workouts
-        const workoutsQuery = query(collection(db, 'workouts'), where('userId', '==', user.uid))
+        const workoutsQuery = query(
+          collection(db, 'workouts'),
+          where('userId', '==', user.uid),
+          orderBy('date', 'desc'),
+          limit(365) // Fetch last year of workouts
+        )
         const workoutsSnapshot = await getDocs(workoutsQuery)
         const totalWorkouts = workoutsSnapshot.size
 
-        // Calculate total weight lifted
         let totalWeightLifted = 0
+        const dates: Date[] = []
         workoutsSnapshot.forEach((doc) => {
           const workout = doc.data()
+          dates.push(workout.date.toDate())
           workout.exercises?.forEach((exercise: any) => {
             exercise.sets?.forEach((set: any) => {
               totalWeightLifted += (set.weight || 0) * (set.reps || 0)
@@ -37,18 +45,10 @@ export default function Home() {
           })
         })
 
-        // Calculate workout streak
-        const streakQuery = query(
-          collection(db, 'workouts'),
-          where('userId', '==', user.uid),
-          orderBy('date', 'desc'),
-          limit(30) // Fetch last 30 days of workouts
-        )
-        const streakSnapshot = await getDocs(streakQuery)
         let streak = 0
         let lastWorkoutDate: Date | null = null
 
-        streakSnapshot.forEach((doc) => {
+        workoutsSnapshot.forEach((doc) => {
           const workoutDate = doc.data().date.toDate()
           if (!lastWorkoutDate) {
             lastWorkoutDate = workoutDate
@@ -59,7 +59,7 @@ export default function Home() {
               streak++
               lastWorkoutDate = workoutDate
             } else {
-              return // Break the loop if streak is broken
+              return
             }
           }
         })
@@ -69,6 +69,7 @@ export default function Home() {
           totalWeightLifted,
           workoutStreak: streak,
         })
+        setWorkoutDates(dates)
       } catch (error) {
         console.error('Error fetching stats:', error)
       }
@@ -90,9 +91,14 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <MainMenu />
-      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float">
+      <motion.h1 
+        className="text-3xl md:text-4xl font-bold mb-8 text-white text-center animate-float"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         Welcome to GymGa.me 🏋️‍♂️
-      </h1>
+      </motion.h1>
       
       {/* User Stats */}
       <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
@@ -120,6 +126,12 @@ export default function Home() {
             <Calendar className="w-8 h-8 text-yellow-500" />
           </div>
         </div>
+      </div>
+
+      {/* Workout Calendar */}
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
+        <h2 className="text-2xl font-bold mb-4 text-white">Workout Calendar</h2>
+        <WorkoutCalendar workoutDates={workoutDates} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
