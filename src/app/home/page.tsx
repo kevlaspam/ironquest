@@ -6,9 +6,19 @@ import { MainMenu } from '../../components/MainMenu'
 import { Users, PlusSquare, History, BarChart2, Award, CheckSquare, User, Dumbbell, Zap, Calendar } from 'lucide-react'
 import { useAuth } from '../../components/AuthProvider'
 import { db } from '../../lib/firebase'
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore'
+import { collection, query, where, getDocs, orderBy, limit, doc, getDoc } from 'firebase/firestore'
 import { motion } from 'framer-motion'
 import { WorkoutCalendar } from '../../components/WorkoutCalendar'
+
+type UserProfile = {
+  name: string
+  username: string
+  height: number
+  weightHistory: { date: string; weight: number }[]
+  fitnessGoal: string
+  activityLevel: string
+  profileEmoji: string
+}
 
 export default function Home() {
   const { user } = useAuth()
@@ -18,17 +28,25 @@ export default function Home() {
     workoutStreak: 0,
   })
   const [workoutDates, setWorkoutDates] = useState<Date[]>([])
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchUserDataAndStats = async () => {
       if (!user) return
 
       try {
+        // Fetch user profile
+        const userProfileDoc = await getDoc(doc(db, 'users', user.uid))
+        if (userProfileDoc.exists()) {
+          setUserProfile(userProfileDoc.data() as UserProfile)
+        }
+
+        // Fetch workouts
         const workoutsQuery = query(
           collection(db, 'workouts'),
           where('userId', '==', user.uid),
           orderBy('date', 'desc'),
-          limit(365) // Fetch last year of workouts
+          limit(365)
         )
         const workoutsSnapshot = await getDocs(workoutsQuery)
         const totalWorkouts = workoutsSnapshot.size
@@ -71,11 +89,11 @@ export default function Home() {
         })
         setWorkoutDates(dates)
       } catch (error) {
-        console.error('Error fetching stats:', error)
+        console.error('Error fetching user data and stats:', error)
       }
     }
 
-    fetchStats()
+    fetchUserDataAndStats()
   }, [user])
 
   const pages = [
@@ -97,7 +115,7 @@ export default function Home() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        Welcome to GymGa.me 🏋️‍♂️
+        Welcome to GymGa.me, {userProfile?.username || userProfile?.name || 'Athlete'} 🏋️‍♂️
       </motion.h1>
       
       {/* User Stats */}
@@ -129,8 +147,7 @@ export default function Home() {
       </div>
 
       {/* Workout Calendar */}
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border-4 border-yellow-500">
-        <h2 className="text-2xl font-bold mb-4 text-white">Workout Calendar</h2>
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg p-4 mb-8 border-4 border-yellow-500">
         <WorkoutCalendar workoutDates={workoutDates} />
       </div>
 
