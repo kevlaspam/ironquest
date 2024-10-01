@@ -11,13 +11,13 @@ import { motion } from 'framer-motion'
 import { WorkoutCalendar } from '../../components/WorkoutCalendar'
 
 type UserProfile = {
-  name: string
-  username: string
-  height: number
-  weightHistory: { date: string; weight: number }[]
-  fitnessGoal: string
-  activityLevel: string
-  profileEmoji: string
+  name?: string
+  username?: string
+  height?: number
+  weightHistory?: { date: string; weight: number }[]
+  fitnessGoal?: string
+  activityLevel?: string
+  profileEmoji?: string
 }
 
 export default function Home() {
@@ -55,7 +55,9 @@ export default function Home() {
         const dates: Date[] = []
         workoutsSnapshot.forEach((doc) => {
           const workout = doc.data()
-          dates.push(workout.date.toDate())
+          if (workout.date) {
+            dates.push(workout.date.toDate())
+          }
           workout.exercises?.forEach((exercise: any) => {
             exercise.sets?.forEach((set: any) => {
               totalWeightLifted += (set.weight || 0) * (set.reps || 0)
@@ -67,17 +69,20 @@ export default function Home() {
         let lastWorkoutDate: Date | null = null
 
         workoutsSnapshot.forEach((doc) => {
-          const workoutDate = doc.data().date.toDate()
-          if (!lastWorkoutDate) {
-            lastWorkoutDate = workoutDate
-            streak = 1
-          } else {
-            const dayDifference = Math.floor((lastWorkoutDate.getTime() - workoutDate.getTime()) / (1000 * 3600 * 24))
-            if (dayDifference === 1) {
-              streak++
+          const workout = doc.data()
+          if (workout.date) {
+            const workoutDate = workout.date.toDate()
+            if (!lastWorkoutDate) {
               lastWorkoutDate = workoutDate
+              streak = 1
             } else {
-              return
+              const dayDifference = Math.floor((lastWorkoutDate.getTime() - workoutDate.getTime()) / (1000 * 3600 * 24))
+              if (dayDifference === 1) {
+                streak++
+                lastWorkoutDate = workoutDate
+              } else {
+                return
+              }
             }
           }
         })
